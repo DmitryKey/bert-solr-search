@@ -1,0 +1,9 @@
+streamlit
+pandas
+tensorflow==1.15.3
+flask
+bert-serving-server
+bert-serving-client
+flask_compress
+flask_cors
+flask_json
