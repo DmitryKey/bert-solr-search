@@ -2,7 +2,7 @@ Bert Solr Search
 ===
 
 This code is described in this Medium story: 
-(https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28)[https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28]
+https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28
 
 ![Bert in Solr hat](img/bert.png)
 
