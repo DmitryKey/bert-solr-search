@@ -1,6 +1,9 @@
 Bert Solr Search
 ===
 
+This code is described in this Medium story: 
+(https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28)[https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28]
+
 # Install tensorflow
 
 `pip install tensorflow==1.15.3`
@@ -61,4 +64,8 @@ The same index_dbpedia_abstracts.py code will output statistics:
     Committing changes
     All done. Took: 82.46466588973999 seconds
     
-bzcat data/dbpedia/long_abstracts_en.ttl.bz2 | wc -l
+We know how many abstracts there are:    
+    
+    bzcat data/dbpedia/long_abstracts_en.ttl.bz2 | wc -l
+    5045733
+    
