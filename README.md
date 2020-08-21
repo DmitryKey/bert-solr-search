@@ -6,6 +6,14 @@ https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28
 
 ![Bert in Solr hat](img/bert.png)
 
+Tech stack: 
+- bert-as-service
+- solr
+- streamlit
+- Python 3
+
+Code for dealing with Solr has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
+
 # Install tensorflow
 
 `pip install tensorflow==1.15.3`
