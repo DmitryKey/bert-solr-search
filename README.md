@@ -1,8 +1,11 @@
-Bert Solr Search
+Bert with Solr and Elasticsearch
 ===
 
-This code is described in this Medium story: 
-https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28
+This code is described in two Medium stories: 
+
+[Neural Search with BERT and Solr](https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28)
+
+[Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559)
 
 ![Bert in Solr hat](img/bert.png)
 
