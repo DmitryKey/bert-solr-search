@@ -1,47 +1,40 @@
-import bz2
 import re
 import nltk
-from bert_serving.client import BertClient
-from client.solr_client import SolrClient
-import time
-
-
-bc = BertClient()
-sc = SolrClient()
-
-source_file = bz2.BZ2File("data/dbpedia/long_abstracts_en.ttl.bz2", "r")
+from enum import Enum
+from client.utils import to_solr_vector
 
 VERBOSE = False
+# change this constant to vary the number of indexed abstracts
+# set to -1 to index all
+MAX_DOCS = 200
 
 
-def compute_vectors(text):
-    return bc.encode(text)
+class SearchEngine(Enum):
+    SOLR = 1
+    ELASTICSEARCH = 2
 
 
-def to_solr_vector(vectors):
-    solr_vector = []
-    for vector in vectors:
-        for i, point in enumerate(vector):
-            solr_vector.append(str(i) + '|' + str(point))
-    solr_vector = " ".join(solr_vector)
-    return solr_vector
+def compute_vectors(text, bc):
+    return bc.encode([text])
 
 
-def parse_and_index_data():
-
+def parse_and_index_data(source_file, bc, search_engine: SearchEngine):
+    """
+    Parses the input file of abstracts, computes BERT embeddings for each abstract,
+    and indexes into the chosen search engine
+    :param source_file: input file
+    :param bc: BERT service client
+    :param search_engine: the desired search engine see {@code:SearchEngine} class
+    :return: yields document by document to the consumer
+    """
     global VERBOSE
-
     count = 0
-    # change this constant to vary the number of indexed abstracts
-    # set to -1 to index all
-    max_docs = 1000
-
     max_tokens = 0
 
-    if -1 < max_docs < 50:
+    if -1 < MAX_DOCS < 50:
         VERBOSE = True
 
-    ten_percent = 10 * max_docs / 100
+    ten_percent = 10 * MAX_DOCS / 100
     if ten_percent <= 0:
         ten_percent = 1000
 
@@ -57,7 +50,8 @@ def parse_and_index_data():
         if token_size > max_tokens:
             max_tokens = token_size
 
-        # skip lines with 20 tokens or less
+        # skip lines with 20 tokens or less, because they tend to contain noise
+        # (this may vary in your dataset)
         if token_size <= 20:
             continue
 
@@ -81,20 +75,26 @@ def parse_and_index_data():
         line = re.sub(language_at_ending_regex, '', line)
 
         # compute vectors for a concatenated string of sentences
-        vectors = compute_vectors([' ||| '.join(nltk.sent_tokenize(line, "english"))])
+        vector = compute_vectors(' ||| '.join(nltk.sent_tokenize(line, "english")), bc)
 
-        # convert BERT vector into Solr vector format
-        solr_vector = to_solr_vector(vectors)
+        if search_engine == SearchEngine.SOLR:
+            # convert BERT vector into Solr vector format
+            vector = to_solr_vector(vector)
+        elif search_engine == SearchEngine.ELASTICSEARCH:
+            vector = vector.flatten()
+        else:
+            raise Exception("Unknown search engine: {}".format(search_engine))
 
-        # form the Solr input object for this abstract
+        # form the input object for this abstract
         solr_doc = {
-            "vector": solr_vector,
+            "vector": vector,
             "_text_": line,
-            "url": url
+            "url": url,
+            "id": count+1
         }
 
-        if VERBOSE:
-            print(solr_doc)
+        #if VERBOSE:
+        #    print(solr_doc)
 
         yield solr_doc
         count += 1
@@ -102,16 +102,8 @@ def parse_and_index_data():
         if count % ten_percent == 0:
             print("Processed and indexed {} documents".format(count))
 
-        if count == max_docs:
+        if count == MAX_DOCS:
             break
 
     source_file.close()
     print("Maximum tokens observed per abstract: {}".format(max_tokens))
-
-
-if __name__ == '__main__':
-    print("parsing and indexing abstracts with solr BERT based vectors...")
-    start_time = time.time()
-    sc.index_documents("vector-search", parse_and_index_data())
-    end_time = time.time()
-    print("All done. Took: {} seconds".format(end_time-start_time))

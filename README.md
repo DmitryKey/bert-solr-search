@@ -79,3 +79,11 @@ We know how many abstracts there are:
     bzcat data/dbpedia/long_abstracts_en.ttl.bz2 | wc -l
     5045733
     
+Running the BERT search demo
+===
+There are two streamlit demos for running BERT search
+for Solr and Elasticsearch. Each demo compares to BM25 based search.
+
+To run a demo, execute the following on the command line from the project root:
+
+    streamlit run src/search_demo_elasticsearch.py

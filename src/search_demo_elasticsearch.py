@@ -1,15 +1,14 @@
 import streamlit as st
 from bert_serving.client import BertClient
-from client.solr_client import SolrClient
-from client.utils import get_solr_vector_search
+from client.elastic_client import ElasticClient
+from client.utils import get_solr_vector_search, get_elasticsearch_vector
 import pandas as pd
 import plotly.graph_objects as go
 
 st.write("Connecting the BertClient...")
 bc = BertClient()
-st.write("Connecting the SolrClient...")
-sc = SolrClient()
-
+st.write("Connecting the ElasticClient...")
+ec = ElasticClient()
 
 def local_css(file_name):
     with open(file_name) as f:
@@ -81,7 +80,7 @@ References:
     )
 
 
-st.title('BERT & Solr Search Demo')
+st.title('BERT & Elasticsearch Search Demo')
 ranker = st.sidebar.radio('Rank by', ["BERT", "BM25"], index=0)
 measure = st.sidebar.radio('BERT ranker formula', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
 
@@ -101,36 +100,44 @@ if button_clicked or query != "":
         cosine = "false"
         if measure == "cosine ([0,1])":
             cosine = "true"
+            ranker_function = "cosineSimilarity(params['query_vector'], 'vector')"
         elif measure == "dot product (unbounded)":
             cosine = "false"
+            # Using the standard sigmoid function prevents scores from being negative
+            ranker_function = """
+          double value = dotProduct(params.query_vector, 'my_dense_vector');
+          return sigmoid(1, Math.E, -value); 
+        """
         query = {
-            "q": '{!vp f=vector vector="' + get_solr_vector_search(bc, query) + '" cosine=' + cosine + '}',
-            "wt": "json",
-            "fl": "id,_text_,url,score",
-            "rows": n
-
+            "_source": ["id", "_text_", "url"],
+            "query": {
+                "script_score": {
+                    "query": {"match_all": {}},
+                    "script": {
+                        "source": ranker_function,
+                        "params": {"query_vector": get_elasticsearch_vector(bc, query)}
+                    }
+                }
+            }
         }
     elif ranker == "BM25":
         query = {
-            "q": query,
-            "wt": "json",
-            "fl": "id,_text_,url,score",
-            "rows": n
-
+            "query": query
         }
     with st.spinner(text="Searching..."):
-        docs, query_time, numfound = sc.query("vector", query)
+        docs, query_time, numfound = ec.query("vector", query)
     st.success("Done!")
 
     st.write("Query time: {} ms".format(query_time))
     st.write("Found documents: {}".format(numfound))
-    df = pd.DataFrame(docs)
-    st.table(df)
-    # Try plotly table for different UX, than standard streamlit table rendering
-    # plotly_table(df)
+    if numfound > 0:
+        df = pd.DataFrame(docs)
+        st.table(df)
+        # Try plotly table for different UX, than standard streamlit table rendering
+        # plotly_table(df)
 
-    chart_data = pd.DataFrame(
-        df["score"],
-        columns=['score'])
-    st.line_chart(chart_data)
+        chart_data = pd.DataFrame(
+            df["_score"],
+            columns=['score'])
+        st.line_chart(chart_data)
 

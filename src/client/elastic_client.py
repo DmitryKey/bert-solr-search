@@ -1,15 +1,17 @@
 import os
 import requests
-from base_client import BaseClient
 import json
 import elasticsearch.helpers
 from elasticsearch import Elasticsearch
+
+from client.base_client import BaseClient
 
 
 class ElasticResp():
     def __init__(self, resp):
         self.status_code = 400
         if 'acknowledged' in resp and resp['acknowledged']:
+            print("request acknowledged!")
             self.status_code = 200
         else:
             self.status_code = resp['status']
@@ -59,7 +61,7 @@ class ElasticClient(BaseClient):
     def name(self):
         return "elastic"
 
-    def resp_msg(msg, resp, throw=True):
+    def resp_msg(self, msg, resp, throw=True):
         print('{} [Status: {}]'.format(msg, resp.status_code))
         if resp.status_code >= 400:
             print(resp.text)
@@ -76,7 +78,8 @@ class ElasticClient(BaseClient):
         with open(cfg_json_path) as src:
             settings = json.load(src)
             resp = self.es.indices.create(index, body=settings)
-            self.resp_msg(msg="Created index {}".format(index), resp=ElasticResp(resp))
+            print("create_index: resp={}".format(resp))
+            self.resp_msg("Created index {}".format(index), ElasticResp(resp))
 
     def index_documents(self, index, doc_src):
 
@@ -208,6 +211,7 @@ class ElasticClient(BaseClient):
         return matches
 
     def query(self, index, query):
+        print("query:{}".format(query))
         resp = self.es.search(index=index, body=query)
         self.resp_msg(msg="Searching {} - {}".format(index, str(query)[:20]), resp=SearchResp(resp))
 
@@ -217,7 +221,7 @@ class ElasticClient(BaseClient):
             hit['_source']['_score'] = hit['_score']
             matches.append(hit['_source'])
 
-        return matches
+        return matches, resp['took'], resp['hits']['total']['value']
 
     def feature_set(self, index, name):
         resp = requests.get('{}/_featureset/{}'.format(self.elastic_ep,
