@@ -98,6 +98,7 @@ if button_clicked or query != "":
     st.write("Ranker: {}".format(ranker))
     if ranker == "BERT":
         cosine = "false"
+        ranker_function = ''
         if measure == "cosine ([0,1])":
             cosine = "true"
             ranker_function = "cosineSimilarity(params['query_vector'], 'vector')"

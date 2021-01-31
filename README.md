@@ -11,7 +11,7 @@ This code is described in two Medium stories:
 
 Tech stack: 
 - bert-as-service
-- solr
+- solr / elasticsearch
 - streamlit
 - Python 3
 
@@ -89,4 +89,8 @@ for Solr and Elasticsearch. Each demo compares to BM25 based search.
 
 To run a demo, execute the following on the command line from the project root:
 
+    # for experiments with Elasticsearch
     streamlit run src/search_demo_elasticsearch.py
+
+    # for experiments with Solr
+    streamlit run src/search_demo_solr.py
