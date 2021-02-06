@@ -86,6 +86,8 @@ Running the BERT search demo
 ===
 There are two streamlit demos for running BERT search
 for Solr and Elasticsearch. Each demo compares to BM25 based search.
+The following assumes that you have bert-as-service up and running (if not, laucnh it with `bash start_bert_server.sh`)
+and either Elasticsearch or Solr running with the index containing field with embeddings.
 
 To run a demo, execute the following on the command line from the project root:
 

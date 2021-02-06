@@ -4,9 +4,6 @@ from enum import Enum
 from client.utils import to_solr_vector
 
 VERBOSE = False
-# change this constant to vary the number of indexed abstracts
-# set to -1 to index all
-MAX_DOCS = 200
 
 
 class SearchEngine(Enum):
@@ -18,7 +15,7 @@ def compute_vectors(text, bc):
     return bc.encode([text])
 
 
-def parse_and_index_data(source_file, bc, search_engine: SearchEngine):
+def parse_and_index_data(source_file, bc, search_engine: SearchEngine, max_docs):
     """
     Parses the input file of abstracts, computes BERT embeddings for each abstract,
     and indexes into the chosen search engine
@@ -31,10 +28,10 @@ def parse_and_index_data(source_file, bc, search_engine: SearchEngine):
     count = 0
     max_tokens = 0
 
-    if -1 < MAX_DOCS < 50:
+    if -1 < max_docs < 50:
         VERBOSE = True
 
-    ten_percent = 10 * MAX_DOCS / 100
+    ten_percent = 10 * max_docs / 100
     if ten_percent <= 0:
         ten_percent = 1000
 
@@ -102,7 +99,7 @@ def parse_and_index_data(source_file, bc, search_engine: SearchEngine):
         if count % ten_percent == 0:
             print("Processed and indexed {} documents".format(count))
 
-        if count == MAX_DOCS:
+        if count == max_docs:
             break
 
     source_file.close()
