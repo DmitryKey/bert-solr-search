@@ -16,12 +16,12 @@ source_file = bz2.BZ2File(input_file, "r")
 
 # Change this constant to vary the number of indexed abstracts
 # set to -1 to index all
-MAX_DOCS = 20000
+MAX_DOCS = 1000
 
 if __name__ == '__main__':
     print("parsing and indexing abstracts with BERT based vectors...")
     start_time = time.time()
-    index = "vector"
+    index = "elastiknn"
     ec.delete_index(index)
     ec.create_index(index)
     ec.index_documents(index, parse_data(source_file, bc, SearchEngine.ELASTICSEARCH, MAX_DOCS))

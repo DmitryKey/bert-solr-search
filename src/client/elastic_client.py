@@ -69,7 +69,7 @@ class ElasticClient(BaseClient):
                 raise RuntimeError(resp.text)
 
     def delete_index(self, index):
-        resp = self.es.indices.delete(index=index, ignore=[400, 404])
+        resp = self.es.indices.delete(index=index, ignore=[400, 404], ignore_unavailable=True)
         self.resp_msg("Deleted index {}".format(index), ElasticResp(resp))
 
     def create_index(self, index):

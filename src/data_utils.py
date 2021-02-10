@@ -15,7 +15,7 @@ def compute_vectors(text, bc):
     return bc.encode([text])
 
 
-def parse_and_index_data(source_file, bc, search_engine: SearchEngine, max_docs):
+def parse_data(source_file, bc, search_engine: SearchEngine, max_docs):
     """
     Parses the input file of abstracts, computes BERT embeddings for each abstract,
     and indexes into the chosen search engine
@@ -83,17 +83,14 @@ def parse_and_index_data(source_file, bc, search_engine: SearchEngine, max_docs)
             raise Exception("Unknown search engine: {}".format(search_engine))
 
         # form the input object for this abstract
-        solr_doc = {
+        doc = {
             "vector": vector,
             "_text_": line,
             "url": url,
             "id": count+1
         }
 
-        #if VERBOSE:
-        #    print(solr_doc)
-
-        yield solr_doc
+        yield doc
         count += 1
 
         if count % ten_percent == 0:
