@@ -23,6 +23,10 @@ Code for dealing with Solr has been copied from the great (and highly recommende
 
 If you try to install tensorflow 2.3, bert service will fail to start, there is an existing issue about it.
 
+If you encounter issues with the above installation, consider installing full list of packages:
+
+`pip install -r requirements_freeze.txt`
+
 # Let's install bert-as-service components
 
 `pip install bert-serving-server`
@@ -30,7 +34,7 @@ If you try to install tensorflow 2.3, bert service will fail to start, there is 
 `pip install bert-serving-client`    
 
 # Download a pre-trained BERT model 
-into the bert-model/ directory in this project. I have chosen uncased_L-12_H-768_A-12.zip
+into the `bert-model/` directory in this project. I have chosen [uncased_L-12_H-768_A-12.zip](https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip)
 for this experiment. Unzip it.
 
 # Now let's start the BERT service
@@ -38,7 +42,8 @@ for this experiment. Unzip it.
 `bash start_bert_server.sh`
 
 # Run a sample bert client
- to compute vectors for 3 sentences:
+    python src/bert_client.py
+ to compute vectors for 3 sample sentences:
 
         Bert vectors for sentences ['First do it', 'then do it right', 'then do it better'] : [[ 0.13186474  0.32404128 -0.82704437 ... -0.3711958  -0.39250174
           -0.31721866]
@@ -50,12 +55,12 @@ for this experiment. Unzip it.
 This sets up the stage for our further experiment with Solr.
 
 # Dataset
- This is by far the key ingredient of every experiment. You want to find an interesting
+This is by far the key ingredient of every experiment. You want to find an interesting
 collection of texts, that are suitable for semantic level search. Well, maybe all texts are. I have chosen a collection of abstracts from DBPedia,
-that I downloaded from here: https://wiki.dbpedia.org/dbpedia-version-2016-04 and placed into data/ directory in bz2 format.
-You don't need to extract this file onto disk: our code will read directly from the compressed file.
+that I downloaded from here: https://wiki.dbpedia.org/dbpedia-version-2016-04 and placed into `data/dbpedia` directory in bz2 format.
+You don't need to extract this file onto disk: the provided code will read directly from the compressed file.
 
-# Preprocessing and Indexing
+# Preprocessing and Indexing: Solr
 Let's preprocess the downloaded abstracts, and index them in Solr. First, execute the following command to start Solr:
 
     bin/solr start -m 2g
@@ -82,6 +87,10 @@ We know how many abstracts there are:
     bzcat data/dbpedia/long_abstracts_en.ttl.bz2 | wc -l
     5045733
     
+# Preprocessing and Indexing: Elasticsearch
+
+# Preprocessing and Indexing: GSI APU
+
 Running the BERT search demo
 ===
 There are two streamlit demos for running BERT search
