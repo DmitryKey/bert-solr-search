@@ -2,7 +2,7 @@ import bz2
 from bert_serving.client import BertClient
 from client.elastic_client import ElasticClient
 import time
-from data_utils import parse_dbpedia_data, SearchEngine
+from data_utils import parse_dbpedia_data, SearchEngine, EmbeddingModel
 
 print("Initializing BERT and Elastic clients")
 bc = BertClient()
@@ -24,6 +24,11 @@ if __name__ == '__main__':
     index = "elastiknn"
     ec.delete_index(index)
     ec.create_index(index)
-    ec.index_documents(index, parse_dbpedia_data(source_file, bc, SearchEngine.ELASTICSEARCH, MAX_DOCS))
+    ec.index_documents(index, parse_dbpedia_data(
+        source_file,
+        bc,
+        EmbeddingModel.BERT_UNCASED_768,
+        SearchEngine.ELASTICSEARCH,
+        MAX_DOCS))
     end_time = time.time()
     print("All done. Took: {} seconds".format(end_time-start_time))
