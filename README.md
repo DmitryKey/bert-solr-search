@@ -7,7 +7,11 @@ This code is described in two Medium stories:
 
 [Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559)
 
-![Bert in Solr hat](img/bert.png)
+![Bert in Solr hat](img/bert_solr.png)
+![Bert with_es burger](img/bert_es.png=100x20)
+
+---
+<img alt="solr" src="https://github.com/DmitryKey/bert-solr-search/blob/bert-es-search/img/bert.png" width="360" height="459">
 
 Tech stack: 
 - bert-as-service

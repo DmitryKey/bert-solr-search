@@ -24,11 +24,11 @@ def to_solr_vector(vectors):
     return solr_vector
 
 
-def get_elasticsearch_vector(bert_client, query):
+def get_elasticsearch_vector(query_vector):
     """
     Compute the BERT embedding of the given query and return an array of vector values
-    :param bert_client: BERT client to the bert-as-service
-    :param query: user query
+    :type query_vector: embedding vector of the query
     :return: BERT embedding array
     """
-    return bert_client.encode([query]).flatten('F')
+    # return bert_client.encode([query]).flatten('F')
+    return query_vector.flatten('F')

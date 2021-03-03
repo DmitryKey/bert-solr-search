@@ -72,14 +72,14 @@ class ElasticClient(BaseClient):
         resp = self.es.indices.delete(index=index, ignore=[400, 404], ignore_unavailable=True)
         self.resp_msg("Deleted index {}".format(index), ElasticResp(resp))
 
-    def create_index(self, index):
+    def create_index(self, index_name, index_spec):
         """ Take the local config files for Elasticsearch for index, reload them into ES"""
-        cfg_json_path = os.path.join(self.configs_dir, "%s_settings.json" % index)
+        cfg_json_path = os.path.join(self.configs_dir, "%s_settings.json" % index_spec)
         with open(cfg_json_path) as src:
             settings = json.load(src)
-            resp = self.es.indices.create(index, body=settings)
+            resp = self.es.indices.create(index_name, body=settings)
             print("create_index: resp={}".format(resp))
-            self.resp_msg("Created index {}".format(index), ElasticResp(resp))
+            self.resp_msg("Created index {}".format(index_name), ElasticResp(resp))
 
     def index_documents(self, index, doc_src):
 

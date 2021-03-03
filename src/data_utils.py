@@ -3,9 +3,10 @@ import re
 import nltk
 from enum import Enum
 
-import numpy
+import numpy as np
 from bert_serving.client import BertClient
 from sentence_transformers import SentenceTransformer
+
 from client.utils import to_solr_vector
 from sklearn.preprocessing import normalize
 
@@ -33,6 +34,7 @@ def compute_bert_vectors(text, bc):
     :return: encoded sentence/token-level embeddings, rows correspond to sentences
     :rtype: numpy.ndarray or list[list[float]]
     """
+    print("compute_bert_vectors() was called")
     return bc.encode([text])
 
 
@@ -43,18 +45,49 @@ def compute_sbert_vectors(text):
     :return: dense embeddings
     numpy.ndarray or list[list[float]]
     """
+    print("compute_sbert_vectors() was called")
     return sbert_model.encode([text])
 
 
-def parse_dbpedia_data(source_file, bc: BertClient, embedding_model: EmbeddingModel, search_engine: SearchEngine, max_docs: int):
+def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, bc: BertClient, search_engine: SearchEngine):
     """
-    Parses the input file of abstracts, computes BERT embeddings for each abstract,
-    and indexes into the chosen search engine
-    :param embedding_model:
+    Given a dictionary document doc, compute vector embeddings for its _text_ attribute and enrich the doc with
+    the computed vector
+    :param docs_iter: iterator over dictionary documents
+    :param embedding_model: desired embedding model
+    :param bc: optional bert-as-service client (depends on the embedding model)
+    :param search_engine: target search engine (Solr, Elasticsearch etc) that affects on the output doc format
+    :return: enriched dictionary document
+    """
+
+    for doc in docs_iter:
+        vector = None
+
+        # compute the vector depending on the model
+        if embedding_model == EmbeddingModel.BERT_UNCASED_768:
+            # compute vectors for a concatenated string of sentences
+            text = ' ||| '.join(nltk.sent_tokenize(doc["_text_"], "english"))
+            vector = compute_bert_vectors(text, bc)
+        elif embedding_model == EmbeddingModel.HUGGING_FACE_SENTENCE:
+            vector = compute_sbert_vectors(doc["_text_"])
+
+        if search_engine == SearchEngine.SOLR:
+            # convert BERT vector into Solr vector format
+            vector = to_solr_vector(vector)
+        elif search_engine == SearchEngine.ELASTICSEARCH:
+            vector = vector.flatten()
+        else:
+            raise Exception("Unknown search engine: {}".format(search_engine))
+
+        doc["vector"] = vector
+        yield doc
+
+
+def parse_dbpedia_data(source_file, max_docs: int):
+    """
+    Parses the input file of abstracts and returns an iterable
     :param max_docs: maximum number of input documents to process; -1 for no limit
     :param source_file: input file
-    :param bc: BERT service client
-    :param search_engine: the desired search engine see {@code:SearchEngine} class
     :return: yields document by document to the consumer
     """
     global VERBOSE
@@ -104,27 +137,8 @@ def parse_dbpedia_data(source_file, bc: BertClient, embedding_model: EmbeddingMo
         language_at_ending_regex = '@en \.\n$'
         line = re.sub(language_at_ending_regex, '', line)
 
-        vector = None
-
-        # compute the vector depending on the model
-        if embedding_model == EmbeddingModel.BERT_UNCASED_768:
-            # compute vectors for a concatenated string of sentences
-            text = ' ||| '.join(nltk.sent_tokenize(line, "english"))
-            vector = compute_bert_vectors(text, bc)
-        elif embedding_model == EmbeddingModel.HUGGING_FACE_SENTENCE:
-            vector = compute_sbert_vectors(line)
-
-        if search_engine == SearchEngine.SOLR:
-            # convert BERT vector into Solr vector format
-            vector = to_solr_vector(vector)
-        elif search_engine == SearchEngine.ELASTICSEARCH:
-            vector = vector.flatten()
-        else:
-            raise Exception("Unknown search engine: {}".format(search_engine))
-
         # form the input object for this abstract
         doc = {
-            "vector": vector,
             "_text_": line,
             "url": url,
             "id": count+1
@@ -143,7 +157,31 @@ def parse_dbpedia_data(source_file, bc: BertClient, embedding_model: EmbeddingMo
     print("Maximum tokens observed per abstract: {}".format(max_tokens))
 
 
-def vectors_to_gis_files(source_file,
+def parse_gsi_and_dbpedia_data(source_file, numpy_data_file, pickle_indexes_file, max_docs: int):
+    """
+    Parse source DBPedia file with abstracts and enrich them with precomputed vector embeddings
+    :param source_file: input file
+    :param numpy_data_file: numpy file with precomputed vector embeddings
+    :param pickle_indexes_file: pickle file with document indices, corresponding to vector embeddings
+    :param max_docs: maximum number of input documents to process; -1 for no limit
+    :return: yields document by document to the consumer
+    """
+    docs_iter = parse_dbpedia_data(source_file, max_docs)
+    vectors = iter(np.load(numpy_data_file))
+    # indices = iter(np.load(pickle_indexes_file))
+
+    # iterate all three, form a merged document and yield it
+    for doc in docs_iter:
+        vector = next(vectors)
+        # index = next(indices)
+
+        # doc["id"] = index
+        doc["vector"] = vector
+
+        yield doc
+
+
+def vectors_to_gsi_files(source_file,
                          bc: BertClient,
                          embedding_model: EmbeddingModel,
                          search_engine: SearchEngine,
@@ -161,20 +199,23 @@ def vectors_to_gis_files(source_file,
     :param output_numpy_file: normalized vectors file
     :param output_pickle_file: doc ids pickle file
     """
-    docs_iter = parse_dbpedia_data(source_file, bc, embedding_model, search_engine, max_docs)
+    docs_iter = parse_dbpedia_data(source_file, max_docs)
     big_vector_arr = []
     big_docid_arr = []
+
+    docs_iter = enrich_doc_with_vectors(docs_iter, embedding_model, bc, search_engine)
+
     for doc in docs_iter:
         # flattened numpy array
         vector = doc['vector']
         big_vector_arr.append(vector)
         big_docid_arr.append(doc['id'])
 
-    print(numpy.shape(big_vector_arr))
+    print(np.shape(big_vector_arr))
     # normalize and serialize to numpy binary format
     normalized_arr = normalize(big_vector_arr, norm='l2', axis=1)
-    normalized_arr = normalized_arr.astype(numpy.float32)
-    numpy.save(file=output_numpy_file, arr=normalized_arr)
+    normalized_arr = normalized_arr.astype(np.float32)
+    np.save(file=output_numpy_file, arr=normalized_arr)
     # serialize to pickle
     with open(output_pickle_file, 'wb') as pickleFile:
         string_list = [str(i) for i in big_docid_arr]

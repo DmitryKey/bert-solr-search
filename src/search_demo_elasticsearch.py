@@ -5,48 +5,62 @@ from client.utils import get_solr_vector_search, get_elasticsearch_vector
 import pandas as pd
 import plotly.graph_objects as go
 
-st.write("Connecting the BertClient...")
+# st.write("Connecting the BertClient...")
+from data_utils import compute_sbert_vectors, compute_bert_vectors
+
 bc = BertClient()
-st.write("Connecting the ElasticClient...")
+# st.write("Connecting the ElasticClient...")
 ec = ElasticClient()
 
 
 # Query config:
 # 1. es-vanilla is default dense vector based search, no KNN / ANN involved
 # 2. es-elastiknn is elastiknn based KNN search with configurable similarity
-def get_query_config(method, ranker_function, query, bert_client):
+def get_query_config(search_method, ranker, distance_metric, query, bc: BertClient, docs_count):
     """
     Compute query config for the given method, ranker function and query
-    :param method: one of es-vanilla, es-elastiknn or es-opendistro
-    :param ranker_function: only applies to es-vanilla method: cosineSimilarity or dotProduct
+    :param ranker: BERT or SBERT
+    :param search_method: one of es-vanilla, es-elastiknn or es-opendistro
+    :param distance_metric: only applies to es-vanilla method: cosineSimilarity or dotProduct
     :param query: user query in plain string
     :param bert_client: bert-as-service client to compute query embedding vector
     :return: query config to be executed in Elasticsearch
     """
     es_query = None
-    index = None
-    if method == 'es-vanilla':
+    if search_method == 'es-vanilla':
+        query_vector = None
+        if ranker == "BERT":
+            query_vector = get_elasticsearch_vector(compute_bert_vectors(query, bc))
+        elif ranker == "SBERT":
+            query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
         es_query = {
+            "size": docs_count,
             "_source": ["id", "_text_", "url"],
             "query": {
                 "script_score": {
                     "query": {"match_all": {}},
                     "script": {
-                        "source": ranker_function,
-                        "params": {"query_vector": get_elasticsearch_vector(bert_client, query)}
+                        "source": distance_metric,
+                        "params": {"query_vector": query_vector}
                     }
                 }
             }
         }
-        index = 'vector'
-    elif method == 'es-elastiknn':
+    elif search_method == 'es-elastiknn':
+        query_vector = None
+        if ranker == "BERT":
+            query_vector = get_elasticsearch_vector(compute_bert_vectors(query, bc))
+        elif ranker == "SBERT":
+            query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
+
         es_query = {
+            "size": docs_count,
             "_source": ["id", "_text_", "url"],
             "query": {
                 "elastiknn_nearest_neighbors": {
                     "field": "vector",
                     "vec": {
-                        "values": get_elasticsearch_vector(bert_client, query),
+                        "values": query_vector,
                     },
                     "model": "lsh",
                     "similarity": "angular",
@@ -54,8 +68,7 @@ def get_query_config(method, ranker_function, query, bert_client):
                 }
             }
         }
-        index = 'elastiknn'
-    return es_query, index
+    return es_query
 
 
 def local_css(file_name):
@@ -129,9 +142,12 @@ References:
 
 
 st.title('BERT & Elasticsearch Search Demo')
-vector_search_implementation = st.sidebar.radio('Search using method:', ['es-vanilla', 'es-elastiknn'], index=0)
-ranker = st.sidebar.radio('Rank by', ["BERT", "BM25"], index=0)
-measure = st.sidebar.radio('BERT ranker formula', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
+vector_search_implementation = st.sidebar.radio('Search using method', ['es-vanilla', 'es-elastiknn'], index=0)
+index = st.sidebar.selectbox('Target index',
+                     ('vector_1000', 'vector_10000', 'vector_100000', 'vector_1000000',
+                      'elastiknn_1000', 'elastiknn_10000', 'elastiknn_100000', 'elastiknn_1000000'))
+ranker = st.sidebar.radio('Rank by', ["BERT", "SBERT", "BM25"], index=0)
+measure = st.sidebar.radio('Ranker distance metric (applies only to BERT/SBERT and es-vanilla)', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
 
 local_css("css/style.css")
 remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
@@ -140,32 +156,35 @@ icon("search")
 
 query = st.text_input("Type your query here", "history of humanity")
 button_clicked = st.button("Go")
-n = st.sidebar.slider(label="Number of Documents to View", min_value=10, max_value=50, value=10, step=10)
+n_docs = st.sidebar.slider(label="Number of Documents to View", min_value=10, max_value=50, value=10, step=10)
 
-if button_clicked or query != "":
+if button_clicked and query != "":
     st.write("Ranker: {}".format(ranker))
+    st.write("Index: {}".format(index))
     es_query = None
-    index = None
-    if ranker == "BERT":
+    if ranker == "BERT" or ranker == "SBERT":
         cosine = "false"
-        ranker_function = ''
+        distance_metric = ''
         if measure == "cosine ([0,1])":
             cosine = "true"
-            ranker_function = "cosineSimilarity(params['query_vector'], 'vector')"
+            distance_metric = "1.0 + cosineSimilarity(params['query_vector'], 'vector')"
         elif measure == "dot product (unbounded)":
             cosine = "false"
             # Using the standard sigmoid function prevents scores from being negative
-            ranker_function = """double value = dotProduct(params.query_vector, 'vector');
+            distance_metric = """double value = dotProduct(params.query_vector, 'vector');
           return sigmoid(1, Math.E, -value);"""
 
-        es_query, index = get_query_config(method=vector_search_implementation,
-                                           ranker_function=ranker_function,
-                                           query=query,
-                                           bert_client=bc)
+        es_query = get_query_config(search_method=vector_search_implementation,
+                                    ranker=ranker,
+                                    distance_metric=distance_metric,
+                                    query=query,
+                                    bc=bc,
+                                    docs_count=n_docs)
     elif ranker == "BM25":
         es_query = {
             "query": query
         }
+
     with st.spinner(text="Searching..."):
         docs, query_time, numfound = ec.query(index, es_query)
     st.success("Done!")
