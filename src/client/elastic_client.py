@@ -43,14 +43,18 @@ class ElasticClient(BaseClient):
         In the future, we may wish to isolate an Index's feature
         store to a feature store of the same name of the index
     """
-    def __init__(self, configs_dir='.'):
+    def __init__(self, host=None, configs_dir='.'):
         self.docker = os.environ.get('LTR_DOCKER') != None
         self.configs_dir = configs_dir #location of elastic configs
 
-        if self.docker:
-            self.host = 'elastic'
+        # respect host if it is set
+        if host is not None:
+            self.host = host
         else:
-            self.host = 'localhost'
+            if self.docker:
+                self.host = 'elastic'
+            else:
+                self.host = 'localhost'
 
         self.elastic_ep = 'http://{}:9200/_ltr'.format(self.host)
         self.es = Elasticsearch('http://{}:9200'.format(self.host))
@@ -215,11 +219,16 @@ class ElasticClient(BaseClient):
         resp = self.es.search(index=index, body=query)
         self.resp_msg(msg="Searching {} - {}".format(index, str(query)[:20]), resp=SearchResp(resp))
 
+        #print("================ ES response")
+        print(resp)
+
         # Transform to consistent format between ES/Solr
         matches = []
         for hit in resp['hits']['hits']:
             hit['_source']['_score'] = hit['_score']
             matches.append(hit['_source'])
+
+
 
         return matches, resp['took'], resp['hits']['total']['value']
 
