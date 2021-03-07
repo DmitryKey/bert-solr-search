@@ -1,3 +1,7 @@
+import numpy as np
+from sklearn.preprocessing import normalize
+
+
 def get_solr_vector_search(bert_client, query):
     """
     Takes user keyword query, computes BERT embedding and returns a
@@ -24,11 +28,29 @@ def to_solr_vector(vectors):
     return solr_vector
 
 
+def myfmt(r):
+   return "%.10f" % (r,)
+
 def get_elasticsearch_vector(query_vector):
     """
     Compute the BERT embedding of the given query and return an array of vector values
     :type query_vector: embedding vector of the query
     :return: BERT embedding array
     """
-    # return bert_client.encode([query]).flatten('F')
-    return query_vector.flatten('F')
+    # 1.
+    #vecfmt = np.vectorize(myfmt)
+    #return vecfmt(query_vector)
+
+    # 2.
+    query_vector = normalize(query_vector, norm='l2', axis=1)
+    query_vector = np.round(query_vector.astype(np.float64), 10)
+    return query_vector.flatten().tolist()
+
+    ## normalize the vector (only for GSI)
+    #print("INPUT {}".format(query_vector))
+    #query_vector = np.round(normalize(query_vector, norm='l2', axis=1), 10)
+    #print("L2 NORM + ROUND {}".format(query_vector))
+    #query_vector = query_vector.flatten('F')
+    #query_vector = np.round(query_vector, 10).tolist()
+    #print ("Flatten + list {}".format(query_vector))
+    #return query_vector

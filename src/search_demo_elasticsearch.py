@@ -1,16 +1,17 @@
 import streamlit as st
 from bert_serving.client import BertClient
 from client.elastic_client import ElasticClient
-from client.utils import get_solr_vector_search, get_elasticsearch_vector
+from client.utils import get_elasticsearch_vector
 import pandas as pd
 import plotly.graph_objects as go
 
-# st.write("Connecting the BertClient...")
 from data_utils import compute_sbert_vectors, compute_bert_vectors
 
 bc = BertClient()
-# st.write("Connecting the ElasticClient...")
+# default ES: connection to localhost
 ec = ElasticClient()
+
+es_gsi = ElasticClient(host='10.10.6.6')
 
 
 # Query config:
@@ -20,19 +21,21 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
     """
     Compute query config for the given method, ranker function and query
     :param ranker: BERT or SBERT
-    :param search_method: one of es-vanilla, es-elastiknn or es-opendistro
+    :param search_method: one of es-vanilla, es-elastiknn, esö-gsi
     :param distance_metric: only applies to es-vanilla method: cosineSimilarity or dotProduct
     :param query: user query in plain string
     :param bert_client: bert-as-service client to compute query embedding vector
     :return: query config to be executed in Elasticsearch
     """
     es_query = None
+
+    query_vector = None
+    if ranker == "BERT":
+        query_vector = get_elasticsearch_vector(compute_bert_vectors(query, bc))
+    elif ranker == "SBERT":
+        query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
+
     if search_method == 'es-vanilla':
-        query_vector = None
-        if ranker == "BERT":
-            query_vector = get_elasticsearch_vector(compute_bert_vectors(query, bc))
-        elif ranker == "SBERT":
-            query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
         es_query = {
             "size": docs_count,
             "_source": ["id", "_text_", "url"],
@@ -47,12 +50,6 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
             }
         }
     elif search_method == 'es-elastiknn':
-        query_vector = None
-        if ranker == "BERT":
-            query_vector = get_elasticsearch_vector(compute_bert_vectors(query, bc))
-        elif ranker == "SBERT":
-            query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
-
         es_query = {
             "size": docs_count,
             "_source": ["id", "_text_", "url"],
@@ -68,6 +65,18 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
                 }
             }
         }
+    elif search_method == 'es-gsi':
+        es_query = {
+            "_source": ["id", "_text_", "url"],
+            "size": docs_count,
+            "query": {
+                "gsi_similarity": {
+                    "field": "vector",
+                    "vector": query_vector
+                }
+            }
+        }
+
     return es_query
 
 
@@ -142,10 +151,11 @@ References:
 
 
 st.title('BERT & Elasticsearch Search Demo')
-vector_search_implementation = st.sidebar.radio('Search using method', ['es-vanilla', 'es-elastiknn'], index=0)
+vector_search_implementation = st.sidebar.radio('Search using method', ['es-vanilla', 'es-elastiknn', 'es-gsi'], index=0)
 index = st.sidebar.selectbox('Target index',
                      ('vector_1000', 'vector_10000', 'vector_100000', 'vector_1000000',
-                      'elastiknn_1000', 'elastiknn_10000', 'elastiknn_100000', 'elastiknn_1000000'))
+                      'elastiknn_1000', 'elastiknn_10000', 'elastiknn_100000', 'elastiknn_1000000',
+                      'long_abstracts'))
 ranker = st.sidebar.radio('Rank by', ["BERT", "SBERT", "BM25"], index=0)
 measure = st.sidebar.radio('Ranker distance metric (applies only to BERT/SBERT and es-vanilla)', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
 
@@ -186,7 +196,11 @@ if button_clicked and query != "":
         }
 
     with st.spinner(text="Searching..."):
-        docs, query_time, numfound = ec.query(index, es_query)
+        if vector_search_implementation == 'es-gsi':
+            print("Searching " + es_gsi.get_host())
+            docs, query_time, numfound = es_gsi.query(index, es_query)
+        else:
+            docs, query_time, numfound = ec.query(index, es_query)
     st.success("Done!")
 
     st.write("Query time: {} ms".format(query_time))
