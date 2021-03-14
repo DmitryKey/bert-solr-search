@@ -65,6 +65,19 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
                 }
             }
         }
+    elif search_method == 'es-opendistro':
+        es_query = {
+            "_source": ["id", "_text_", "url"],
+            "size": docs_count,
+            "query": {
+                "knn": {
+                    "vector": {
+                        "vector": query_vector,
+                        "k": 10
+                    }
+                }
+            }
+        }
     elif search_method == 'es-gsi':
         es_query = {
             "_source": ["id", "_text_", "url"],
@@ -151,10 +164,11 @@ References:
 
 
 st.title('BERT & Elasticsearch Search Demo')
-vector_search_implementation = st.sidebar.radio('Search using method', ['es-vanilla', 'es-elastiknn', 'es-gsi'], index=0)
+vector_search_implementation = st.sidebar.radio('Search using method', ['es-vanilla', 'es-elastiknn', 'es-opendistro', 'es-gsi'], index=0)
 index = st.sidebar.selectbox('Target index',
                      ('vector_1000', 'vector_10000', 'vector_100000', 'vector_1000000',
                       'elastiknn_1000', 'elastiknn_10000', 'elastiknn_100000', 'elastiknn_1000000',
+                      'opendistro_100', 'opendistro_200', 'opendistro_1000', 'opendistro_10000', 'opendistro_20000', 'opendistro_100000', 'opendistro_200000', 'opendistro_1000000',
                       'long_abstracts'))
 ranker = st.sidebar.radio('Rank by', ["BERT", "SBERT", "BM25"], index=0)
 measure = st.sidebar.radio('Ranker distance metric (applies only to BERT/SBERT and es-vanilla)', ["cosine ([0,1])", "dot product (unbounded)"], index=0)

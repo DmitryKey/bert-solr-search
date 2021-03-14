@@ -13,7 +13,7 @@ from sklearn.preprocessing import normalize
 VERBOSE = True
 
 # Init once
-sbert_model = SentenceTransformer('bert-base-nli-mean-tokens')
+sbert_model = SentenceTransformer('models/bert-base-nli-mean-tokens')
 
 
 class SearchEngine(Enum):
@@ -97,9 +97,13 @@ def parse_dbpedia_data(source_file, max_docs: int):
     if -1 < max_docs < 50:
         VERBOSE = True
 
-    ten_percent = 10 * max_docs / 100
-    if ten_percent <= 0:
-        ten_percent = 1000
+    percent = 0.1
+    bulk_size = (percent / 100) * max_docs
+
+    print(f"bulk_size={bulk_size}")
+
+    if bulk_size <= 0:
+        bulk_size = 1000
 
     for line in source_file:
         line = line.decode("utf-8")
@@ -147,7 +151,7 @@ def parse_dbpedia_data(source_file, max_docs: int):
         yield doc
         count += 1
 
-        if count % ten_percent == 0:
+        if count % bulk_size == 0:
             print("Processed {} documents".format(count))
 
         if count == max_docs:
@@ -166,14 +170,15 @@ def parse_gsi_and_dbpedia_data(source_file, numpy_data_file, pickle_indexes_file
     :param max_docs: maximum number of input documents to process; -1 for no limit
     :return: yields document by document to the consumer
     """
+    print("Preparing document iterator...")
     docs_iter = parse_dbpedia_data(source_file, max_docs)
+    print("Loading numpy vectors...")
     vectors = iter(np.load(numpy_data_file))
-    # indices = iter(np.load(pickle_indexes_file))
 
-    # iterate all three, form a merged document and yield it
+    print("Iterating over documents and vectors")
+    # iterate both documents and vectors, form a merged document and yield it
     for doc in docs_iter:
         vector = next(vectors)
-        # index = next(indices)
 
         # doc["id"] = index
         doc["vector"] = vector

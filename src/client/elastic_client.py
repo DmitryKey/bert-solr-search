@@ -43,7 +43,7 @@ class ElasticClient(BaseClient):
         In the future, we may wish to isolate an Index's feature
         store to a feature store of the same name of the index
     """
-    def __init__(self, host=None, configs_dir='.'):
+    def __init__(self, host=None, configs_dir='.', https=False):
         self.docker = os.environ.get('LTR_DOCKER') != None
         self.configs_dir = configs_dir #location of elastic configs
 
@@ -56,8 +56,13 @@ class ElasticClient(BaseClient):
             else:
                 self.host = 'localhost'
 
-        self.elastic_ep = 'http://{}:9200/_ltr'.format(self.host)
-        self.es = Elasticsearch('http://{}:9200'.format(self.host))
+        if https:
+            self.protocol = "https"
+        else:
+            self.protocol = "http"
+
+        self.elastic_ep = '{}://{}:9200/_ltr'.format(self.protocol, self.host)
+        self.es = Elasticsearch('{}://{}:9200'.format(self.protocol, self.host))
 
     def get_host(self):
         return self.host
