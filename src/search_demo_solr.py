@@ -1,7 +1,7 @@
 import streamlit as st
 from bert_serving.client import BertClient
 from client.solr_client import SolrClient
-from client.utils import get_solr_vector
+from client.utils import get_solr_vector_search
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -104,7 +104,7 @@ if button_clicked or query != "":
         elif measure == "dot product (unbounded)":
             cosine = "false"
         query = {
-            "q": '{!vp f=vector vector="' + get_solr_vector(bc, query) + '" cosine=' + cosine + '}',
+            "q": '{!vp f=vector vector="' + get_solr_vector_search(bc, query) + '" cosine=' + cosine + '}',
             "wt": "json",
             "fl": "id,_text_,url,score",
             "rows": n
@@ -119,7 +119,7 @@ if button_clicked or query != "":
 
         }
     with st.spinner(text="Searching..."):
-        docs, query_time, numfound = sc.query("vector-search", query)
+        docs, query_time, numfound = sc.query("vector", query)
     st.success("Done!")
 
     st.write("Query time: {} ms".format(query_time))
