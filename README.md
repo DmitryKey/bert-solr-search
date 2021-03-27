@@ -7,6 +7,8 @@ This code is described in two Medium stories:
 
 [Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559)
 
+[Speeding up BERT Search in Elasticsearch](https://dmitry-kan.medium.com/speeding-up-bert-search-in-elasticsearch-750f1f34f455)
+
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
 
