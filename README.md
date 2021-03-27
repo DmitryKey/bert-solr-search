@@ -71,6 +71,11 @@ After the plugin's jar has been added, configure it in the solrconfig.xml like s
 
     <queryParser name="vp" class="com.github.saaay71.solr.VectorQParserPlugin" />
 
+Schema also requires an addition: field of type `VectorField` is required in order to index vector data:
+
+
+    <field name="vector" type="VectorField" indexed="true" termOffsets="true" stored="true" termPositions="true" termVectors="true" multiValued="true"/>
+
 Find ready-made schema and solrconfig here: https://github.com/DmitryKey/bert-solr-search/tree/master/solr_conf
 
 Let's preprocess the downloaded abstracts, and index them in Solr. First, execute the following command to start Solr:
