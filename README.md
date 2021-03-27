@@ -3,11 +3,11 @@ Bert with Solr and Elasticsearch
 
 This code is described in two Medium stories: 
 
-[Neural Search with BERT and Solr](https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28)
+[Neural Search with BERT and Solr](https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28) (August 18,2020)
 
-[Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559)
+[Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559) (November 15, 2020)
 
-[Speeding up BERT Search in Elasticsearch](https://dmitry-kan.medium.com/speeding-up-bert-search-in-elasticsearch-750f1f34f455)
+[Speeding up BERT Search in Elasticsearch](https://dmitry-kan.medium.com/speeding-up-bert-search-in-elasticsearch-750f1f34f455) (March 15, 2021)
 
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
