@@ -64,6 +64,15 @@ that I downloaded from here: https://wiki.dbpedia.org/dbpedia-version-2016-04 an
 You don't need to extract this file onto disk: the provided code will read directly from the compressed file.
 
 # Preprocessing and Indexing: Solr
+Before running preprocessing / indexing, you need to configure the vector plugin, which allows to index and query the vector data.
+You can find the plugin for Solr 8.x here: https://github.com/DmitryKey/solr-vector-scoring
+
+After the plugin's jar has been added, configure it in the solrconfig.xml like so:
+
+    <queryParser name="vp" class="com.github.saaay71.solr.VectorQParserPlugin" />
+
+Find ready-made schema and solrconfig here: https://github.com/DmitryKey/bert-solr-search/tree/master/solr_conf
+
 Let's preprocess the downloaded abstracts, and index them in Solr. First, execute the following command to start Solr:
 
     bin/solr start -m 2g
