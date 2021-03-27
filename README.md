@@ -1,7 +1,7 @@
 Bert with Solr and Elasticsearch
 ===
 
-This code is described in two Medium stories: 
+This code is described in the following Medium stories, taking one step at a time: 
 
 [Neural Search with BERT and Solr](https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28) (August 18,2020)
 
