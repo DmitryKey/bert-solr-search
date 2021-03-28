@@ -93,7 +93,7 @@ If during processing you will notice:
       '- or, start a new server with a larger "max_seq_len"' % self.length_limit)
 
 
-The same index_dbpedia_abstracts.py code will output statistics:
+The `index_dbpedia_abstracts_solr.py` script will output statistics:
 
 
     Maximum tokens observed per abstract: 697
@@ -107,8 +107,11 @@ We know how many abstracts there are:
     5045733
     
 # Preprocessing and Indexing: Elasticsearch
-
-# Preprocessing and Indexing: GSI APU
+This project implements several ways to index vector data:
+* `src/index_dbpedia_abstracts_elastic.py` vanilla Elasticsearch: using `dense_vector` data type
+* `src/index_dbpedia_abstracts_elastiknn.py` Elastiknn plugin: implements own data type. I used `elastiknn_dense_float_vector`
+* `src/index_dbpedia_abstracts_opendistro.py` OpenDistro for Elasticsearch: uses nmslib to build Hierarchical Navigable Small World (HNSW) graphs during indexing
+* `src/index_dbpedia_abstracts_gsi.py` GSI Elasticsearch plugin: this is hardware accelerated solution. NOTE: to test this solution you will need reach out to GSI team
 
 Running the BERT search demo
 ===
