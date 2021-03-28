@@ -1,11 +1,13 @@
 Bert with Solr and Elasticsearch
 ===
 
-This code is described in two Medium stories: 
+This code is described in the following Medium stories, taking one step at a time: 
 
-[Neural Search with BERT and Solr](https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28)
+[Neural Search with BERT and Solr](https://medium.com/@dmitry.kan/neural-search-with-bert-and-solr-ea5ead060b28) (August 18,2020)
 
-[Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559)
+[Fun with Apache Lucene and BERT Embeddings](https://medium.com/swlh/fun-with-apache-lucene-and-bert-embeddings-c2c496baa559) (November 15, 2020)
+
+[Speeding up BERT Search in Elasticsearch](https://dmitry-kan.medium.com/speeding-up-bert-search-in-elasticsearch-750f1f34f455) (March 15, 2021)
 
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
@@ -64,6 +66,20 @@ that I downloaded from here: https://wiki.dbpedia.org/dbpedia-version-2016-04 an
 You don't need to extract this file onto disk: the provided code will read directly from the compressed file.
 
 # Preprocessing and Indexing: Solr
+Before running preprocessing / indexing, you need to configure the vector plugin, which allows to index and query the vector data.
+You can find the plugin for Solr 8.x here: https://github.com/DmitryKey/solr-vector-scoring
+
+After the plugin's jar has been added, configure it in the solrconfig.xml like so:
+
+    <queryParser name="vp" class="com.github.saaay71.solr.VectorQParserPlugin" />
+
+Schema also requires an addition: field of type `VectorField` is required in order to index vector data:
+
+
+    <field name="vector" type="VectorField" indexed="true" termOffsets="true" stored="true" termPositions="true" termVectors="true" multiValued="true"/>
+
+Find ready-made schema and solrconfig here: https://github.com/DmitryKey/bert-solr-search/tree/master/solr_conf
+
 Let's preprocess the downloaded abstracts, and index them in Solr. First, execute the following command to start Solr:
 
     bin/solr start -m 2g
