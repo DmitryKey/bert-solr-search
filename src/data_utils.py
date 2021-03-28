@@ -174,14 +174,18 @@ def parse_gsi_and_dbpedia_data(source_file, numpy_data_file, pickle_indexes_file
     docs_iter = parse_dbpedia_data(source_file, max_docs)
     print("Loading numpy vectors...")
     vectors = iter(np.load(numpy_data_file))
+    # TODO: throws "TypeError: file must have 'read' and 'readline' attributes"
+    # ids = pickle.load(pickle_indexes_file)
 
     print("Iterating over documents and vectors")
     # iterate both documents and vectors, form a merged document and yield it
     for doc in docs_iter:
         vector = next(vectors)
+        # id = next(ids)
 
-        # doc["id"] = index
-        doc["vector"] = vector
+        # Optionally: we can take the auto-generated ids from the pickle file
+        # doc["id"] = id
+        doc["vector"] = vector.flatten().tolist()
 
         yield doc
 

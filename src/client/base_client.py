@@ -25,7 +25,7 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    def create_index(self, index):
+    def create_index(self, index_name, index_spec):
         pass
 
     @abstractmethod

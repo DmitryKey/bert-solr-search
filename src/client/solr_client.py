@@ -1,6 +1,19 @@
 import os
 import requests
-from .base_client import BaseClient
+
+from client.base_client import BaseClient
+
+
+class SolrResp:
+    def __init__(self, resp):
+        resp = resp.json()
+        self.status_code = 400
+        if 'responseHeader' in resp and resp['responseHeader']['status'] == 0:
+            print("request acknowledged!")
+            self.status_code = 200
+        else:
+            self.status_code = resp['responseHeader']['status']
+            self.text = resp['error']['msg']
 
 
 class SolrClient(BaseClient):
@@ -21,8 +34,9 @@ class SolrClient(BaseClient):
     def name(self):
         return "solr"
 
-    def resp_msg(msg, resp, throw=True):
-        print('{} [Status: {}]'.format(msg, resp.status_code))
+    @staticmethod
+    def resp_msg(msg: str, resp: SolrResp, throw=True):
+        print('resp_msg: {} [Status: {}]'.format(msg, resp.status_code))
         if resp.status_code >= 400:
             print(resp.text)
             if throw:
@@ -38,31 +52,32 @@ class SolrClient(BaseClient):
         }
 
         resp = requests.get('{}/admin/cores?'.format(self.solr_base_ep), params=params)
-        self.resp_msg("Deleted index {}".format(index), resp=resp, throw=False)
+        self.resp_msg("Deleted index {}".format(index), SolrResp(resp))
 
-    def create_index(self, index):
+    def create_index(self, index_name, index_spec):
         # Presumes there is a link between the docker container and the 'index'
         # directory under docker/solr/ (ie docker/solr/tmdb/ is linked into
         # Docker container configsets)
         params = {
             'action': 'CREATE',
-            'name': index,
-            'configSet': index,
+            'name': index_name,
+            'configSet': index_spec,
         }
         resp = requests.get('{}/admin/cores?'.format(self.solr_base_ep), params=params)
-        self.resp_msg("Created index {}".format(index), resp=resp)
+
+        self.resp_msg("Created index {}".format(index_name), SolrResp(resp))
 
     def index_documents(self, index, doc_src):
         def commit():
             print('Committing changes')
             resp = requests.get('{}/{}/update?commit=true'.format(self.solr_base_ep, index))
-            # self.resp_msg("Committed index {}".format(index), resp)
+            self.resp_msg("Committed index {}".format(index), resp)
 
         def flush(docs):
             print('Flushing {} docs'.format(len(docs)))
             resp = requests.post('{}/{}/update'.format(
                 self.solr_base_ep, index), json=docs)
-            # self.resp_msg("Done", resp)
+            self.resp_msg("Done", resp)
             docs.clear()
 
         BATCH_SIZE = 5000

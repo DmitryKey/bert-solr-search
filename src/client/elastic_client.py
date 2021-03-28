@@ -7,7 +7,7 @@ from elasticsearch import Elasticsearch
 from client.base_client import BaseClient
 
 
-class ElasticResp():
+class ElasticResp:
     def __init__(self, resp):
         self.status_code = 400
         if 'acknowledged' in resp and resp['acknowledged']:
