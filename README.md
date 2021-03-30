@@ -16,9 +16,10 @@ This code is described in the following Medium stories, taking one step at a tim
 
 Tech stack: 
 - bert-as-service
+- Hugging Face
 - solr / elasticsearch
 - streamlit
-- Python 3
+- Python 3.8
 
 Code for dealing with Solr has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
 
@@ -111,7 +112,33 @@ This project implements several ways to index vector data:
 * `src/index_dbpedia_abstracts_elastic.py` vanilla Elasticsearch: using `dense_vector` data type
 * `src/index_dbpedia_abstracts_elastiknn.py` Elastiknn plugin: implements own data type. I used `elastiknn_dense_float_vector`
 * `src/index_dbpedia_abstracts_opendistro.py` OpenDistro for Elasticsearch: uses nmslib to build Hierarchical Navigable Small World (HNSW) graphs during indexing
-* `src/index_dbpedia_abstracts_gsi.py` GSI Elasticsearch plugin: this is hardware accelerated solution. NOTE: to test this solution you will need reach out to GSI team
+
+Each indexer relies on ready-made Elasticsearch mapping file, that can be found in `es_conf/` directory.
+
+
+# Preprocessing and Indexing: GSI APU
+In order to use GSI APU solution, a user needs to produce two files:
+numpy 2D array with vectors of desired dimension (768 in my case)
+a pickle file with document ids matching the document ids of the said vectors in Elasticsearch.
+
+After these data files get uploaded to the GSI server, the same data gets indexed in Elasticsearch. The APU powered search is performed on up to 3 Leda-G PCIe APU boards.
+Since I’ve run into indexing performance with bert-as-service solution, 
+I decided to take SBERT approach from Hugging Face to prepare the numpy and pickle array files. 
+This allowed me to index into Elasticsearch freely at any time, without waiting for days.
+You can use this script to do this on DBPedia data, which allows choosing between:
+
+    EmbeddingModel.HUGGING_FACE_SENTENCE (SBERT)
+    EmbeddingModel.BERT_UNCASED_768 (bert-as-service)
+
+To generate the numpy and pickle files, use the following script: `scr/create_gsi_files.py`.
+This script produces two files:
+
+    data/1000000_EmbeddingModel.HUGGING_FACE_SENTENCE_vectors.npy
+    data/1000000_EmbeddingModel.HUGGING_FACE_SENTENCE_vectors_docids.pkl
+
+Both files are perfectly suitable for indexing with Solr and Elasticsearch.
+
+To test the GSI plugin, you will need to upload these files to GSI server for loading them both to Elasticsearch and APU.
 
 Running the BERT search demo
 ===
