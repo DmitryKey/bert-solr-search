@@ -1,7 +1,7 @@
 import bz2
 from bert_serving.client import BertClient
 import time
-from data_utils import SearchEngine, vectors_to_gis_files, EmbeddingModel
+from data_utils import SearchEngine, EmbeddingModel, vectors_to_gsi_files
 
 # Read the input compressed file as is, without decompressing.
 # Though disks are cheap, isn't it great to save them?
@@ -25,7 +25,7 @@ output_pickle_file = "data/gsi_apu/" + str(MAX_DOCS) + "_" + str(model) + "_vect
 if __name__ == '__main__':
     print("parsing abstracts and computing " + str(model) + " embeddings...")
     start_time = time.time()
-    vectors_to_gis_files(
+    vectors_to_gsi_files(
         source_file,
         bc,
         model,
