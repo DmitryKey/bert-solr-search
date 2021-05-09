@@ -17,7 +17,7 @@ This code is described in the following Medium stories, taking one step at a tim
 Tech stack: 
 - bert-as-service
 - Hugging Face
-- solr / elasticsearch
+- Solr / Elasticsearch / ODFE (OpenSearch)
 - streamlit
 - Python 3.8
 
@@ -58,17 +58,17 @@ for this experiment. Unzip it.
          [ 0.28627345 -0.18580122 -0.30906814 ... -0.2959366  -0.39310536
            0.07640187]]
 
-This sets up the stage for our further experiment with Solr.
+The steps so far set up the stage for our further experiment with indexing in the preferred search engine.
 
 # Dataset
 This is by far the key ingredient of every experiment. You want to find an interesting
 collection of texts, that are suitable for semantic level search. Well, maybe all texts are. I have chosen a collection of abstracts from DBPedia,
-that I downloaded from here: https://wiki.dbpedia.org/dbpedia-version-2016-04 and placed into `data/dbpedia` directory in bz2 format.
+which I downloaded from here: https://wiki.dbpedia.org/dbpedia-version-2016-04 and placed into `data/dbpedia` directory in bz2 format.
 You don't need to extract this file onto disk: the provided code will read directly from the compressed file.
 
-# Preprocessing and Indexing: Solr
-Before running preprocessing / indexing, you need to configure the vector plugin, which allows to index and query the vector data.
-You can find the plugin for Solr 8.x here: https://github.com/DmitryKey/solr-vector-scoring
+# Data preprocessing and Indexing in Solr
+Before running preprocessing / indexing, you need to configure the vector plugin, which allows indexing and querying the vector data.
+You can find the plugin for Solr 8.x here: https://github.com/DmitryKey/solr-vector-scoring/releases
 
 After the plugin's jar has been added, configure it in the solrconfig.xml like so:
 
@@ -107,16 +107,42 @@ We know how many abstracts there are:
     bzcat data/dbpedia/long_abstracts_en.ttl.bz2 | wc -l
     5045733
     
-# Preprocessing and Indexing: Elasticsearch
+# Data preprocessing and Indexing in Elasticsearch
 This project implements several ways to index vector data:
 * `src/index_dbpedia_abstracts_elastic.py` vanilla Elasticsearch: using `dense_vector` data type
-* `src/index_dbpedia_abstracts_elastiknn.py` Elastiknn plugin: implements own data type. I used `elastiknn_dense_float_vector`
-* `src/index_dbpedia_abstracts_opendistro.py` OpenDistro for Elasticsearch: uses nmslib to build Hierarchical Navigable Small World (HNSW) graphs during indexing
+* `src/index_dbpedia_abstracts_elastiknn.py` elastiknn plugin: implements own data type. I used `elastiknn_dense_float_vector`
 
-Each indexer relies on ready-made Elasticsearch mapping file, that can be found in `es_conf/` directory.
+Each indexer relies on ready-made Elasticsearch mapping file, that can be found in `es_conf/` directory:
+* es_conf/vector_settings.json is used for vanilla vector search
+* es_conf/elastiknn_settings.json is used for KNN vector search implemented with [elastiknn plugin](https://github.com/alexklibisz/elastiknn).
 
+To configure elastiknn, please refer to its excellent documentation.
 
-# Preprocessing and Indexing: GSI APU
+# Data preprocessing and Indexing in ODFE (Open Distro for Elasticsearch)
+
+* `src/index_dbpedia_abstracts_opendistro.py` ODFE: uses nmslib to build Hierarchical Navigable Small World (HNSW) graphs during indexing
+
+It is important to understand, that unlike vanilla or elastiknn implementation (Java), nmslib implements HNSW graphs in C++ and therefore
+ODFE will use off-heap memory to build this data structure. In order to achieve optimal indexing and search performance, you need to consider
+the following hyper-parameters:
+
+* number of shards and number of replicas: https://opendistro.github.io/for-elasticsearch-docs/docs/elasticsearch/#primary-and-replica-shards
+* KNN space type: `cosinesimil`, `hammingbit`, `l1`, `l2`
+* refresh interval
+* number of segments in the Lucene index
+* circuit_breaker_limit -- cluster level setting, controlling the portion of RAM used for off-heap graphs
+
+The recommended formula for computing RAM used for storing the graphs:
+
+    RAM(vector_dimension) = 1.1 * (4 * vector_dimension + 8 * M) bytes / vector
+
+In this project we compute vectors with 768 dimensions. For 1M vectors and M=16 we will need:
+
+   RAM(768) = 1.1 * (4 * 768 + 8 * 16) * 1,000,000 ~= 3.28 GB
+
+Replicas will double the amount of RAM needed for your cluster.
+
+# Data preprocessing and Indexing in GSI APU
 In order to use GSI APU solution, a user needs to produce two files:
 numpy 2D array with vectors of desired dimension (768 in my case)
 a pickle file with document ids matching the document ids of the said vectors in Elasticsearch.
@@ -144,7 +170,7 @@ Running the BERT search demo
 ===
 There are two streamlit demos for running BERT search
 for Solr and Elasticsearch. Each demo compares to BM25 based search.
-The following assumes that you have bert-as-service up and running (if not, laucnh it with `bash start_bert_server.sh`)
+The following assumes that you have bert-as-service up and running (if not, launch it with `bash start_bert_server.sh`)
 and either Elasticsearch or Solr running with the index containing field with embeddings.
 
 To run a demo, execute the following on the command line from the project root:
