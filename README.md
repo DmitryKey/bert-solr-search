@@ -19,7 +19,7 @@ Tech stack:
 - Hugging Face
 - solr / elasticsearch
 - streamlit
-- Python 3.8
+- Python 3.7
 
 Code for dealing with Solr has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
 
