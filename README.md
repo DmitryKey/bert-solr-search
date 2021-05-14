@@ -1,8 +1,10 @@
 
-https://user-images.githubusercontent.com/123553/118112866-3f44e480-b3ee-11eb-92ca-0250bc65bd37.mp4
-
 Bert with Solr and Elasticsearch
 ===
+
+https://user-images.githubusercontent.com/123553/118112866-3f44e480-b3ee-11eb-92ca-0250bc65bd37.mp4
+https://user-images.githubusercontent.com/123553/118320272-a94fad80-b504-11eb-96cf-1810813e2284.mp4
+
 
 This code is described in the following Medium stories, taking one step at a time: 
 
