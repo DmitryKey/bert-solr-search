@@ -1,5 +1,5 @@
 
-Bert with Solr and Elasticsearch
+BERT models with Solr and Elasticsearch
 ===
 
 https://user-images.githubusercontent.com/123553/118112866-3f44e480-b3ee-11eb-92ca-0250bc65bd37.mp4
