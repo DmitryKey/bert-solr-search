@@ -1,12 +1,11 @@
 {
   "settings": {
-    "number_of_shards": 1,
+    "number_of_shards": 2,
     "number_of_replicas": 0,
     "index": {
       "knn": true,
       "knn.space_type": "cosinesimil",
-      "refresh_interval": "-1",
-      "merge.scheduler.max_thread_count": 1
+      "refresh_interval": "60s"
     }
   },
   "mappings": {

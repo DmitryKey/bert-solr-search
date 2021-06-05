@@ -23,7 +23,7 @@ source_file = bz2.BZ2File(input_file, "r")
 
 # Change this constant to vary the number of indexed abstracts
 # set to -1 to index all
-MAX_DOCS = 300000
+MAX_DOCS = 1000000
 
 if __name__ == '__main__':
     print("parsing and indexing abstracts with BERT based vectors...")
