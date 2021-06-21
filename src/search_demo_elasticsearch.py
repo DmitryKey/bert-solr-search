@@ -1,7 +1,7 @@
 import streamlit as st
 from bert_serving.client import BertClient
 from client.elastic_client import ElasticClient
-from client.utils import get_elasticsearch_vector
+from util.utils import get_elasticsearch_vector
 import pandas as pd
 import plotly.graph_objects as go
 

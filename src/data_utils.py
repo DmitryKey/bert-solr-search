@@ -7,7 +7,7 @@ import numpy as np
 from bert_serving.client import BertClient
 from sentence_transformers import SentenceTransformer
 
-from client.utils import to_solr_vector
+from util.utils import to_solr_vector
 from sklearn.preprocessing import normalize
 
 VERBOSE = True
