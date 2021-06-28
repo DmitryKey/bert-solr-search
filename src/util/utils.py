@@ -116,3 +116,9 @@ def write_ibin(filename, vecs):
         f.write(struct.pack('<i', nvecs))
         f.write(struct.pack('<i', dim))
         vecs.astype('int32').flatten().tofile(f)
+
+
+def fbin_to_tsv(bin_fname: str, tsv_fname: str, total_elems: int):
+    arr = read_fbin(bin_fname, chunk_size=total_elems)
+    print(np.shape(arr))
+    np.savetxt(tsv_fname, arr, delimiter="\t")
