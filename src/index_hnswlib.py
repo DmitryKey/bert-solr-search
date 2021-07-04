@@ -47,18 +47,22 @@ def build_hnswlib_index(dim,
         # The index can be extened by saving/loading (load_index function has a parameter which
         # defines the new maximum number of elements).
         ef_construction = 50
-        M = 2
+        M = 16
         print(f"Initializing index for {num_elements} with ef_construction={ef_construction} M={M}")
-        p.init_index(max_elements=num_elements, ef_construction=ef_construction, M=M)
 
-    # Element insertion (can be called several times):
-    print("Indexing")
-    p.add_items(data, data_labels)
+        print("Index init")
+        p.init_index(max_elements=num_elements, ef_construction=ef_construction, M=M)
 
     # Index parameters are exposed as class properties:
     print(f"Parameters passed to constructor:  space={p.space}, dim={p.dim}")
     print(f"Index construction: M={p.M}, ef_construction={p.ef_construction}")
     print(f"Index size is {p.element_count} and index capacity is {p.max_elements}")
+
+    print(f"Got p={p}")
+    print("---------------")
+    # Element insertion (can be called several times):
+    print("Indexing")
+    p.add_items(data, data_labels)
 
     # Serializing and deleting the index:
     index_path = output_dir + '/' + filename_prefix + '_' + str(num_elements) + '_elements.bin'
