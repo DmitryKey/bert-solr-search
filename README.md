@@ -15,6 +15,8 @@ This code is described in the following Medium stories, taking one step at a tim
 
 [Speeding up BERT Search in Elasticsearch](https://dmitry-kan.medium.com/speeding-up-bert-search-in-elasticsearch-750f1f34f455) (March 15, 2021)
 
+[Ask Me Anything about Vector Search](https://dmitry-kan.medium.com/ask-me-anything-about-vector-search-4252a01f3889) (June 20, 2021)
+
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
 
