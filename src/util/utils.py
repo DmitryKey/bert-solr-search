@@ -54,6 +54,13 @@ def get_elasticsearch_vector(query_vector):
 """
 
 
+def get_total_nvecs_fbin(filename):
+    with open(filename, "rb") as f:
+        nvecs, dim = np.fromfile(f, count=2, dtype=np.int32)
+
+    return nvecs
+
+
 def read_fbin(filename, start_idx=0, chunk_size=None):
     """ Read *.fbin file that contains float32 vectors
     Args:
@@ -86,7 +93,7 @@ def read_ibin(filename, start_idx=0, chunk_size=None):
         nvecs, dim = np.fromfile(f, count=2, dtype=np.int32)
         nvecs = (nvecs - start_idx) if chunk_size is None else chunk_size
         arr = np.fromfile(f, count=nvecs * dim, dtype=np.int32,
-                          offset=start_idx * 4 * dim)
+                          offset=start_idx * dim)
     return arr.reshape(nvecs, dim)
 
 
