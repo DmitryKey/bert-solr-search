@@ -79,6 +79,22 @@ def read_fbin(filename, start_idx=0, chunk_size=None):
     return arr.reshape(nvecs, dim)
 
 
+# by Leo Joffe
+def read_bin(filename, dtype, start_idx=0, chunk_size=None):
+    with open(filename, "rb") as f:
+        # The header is two np.int32 values
+        nvecs, dim = np.fromfile(f, count=2, dtype=np.int32)
+        nvecs = (nvecs - start_idx) if chunk_size is None else chunk_size
+
+        if dtype == np.uint8:
+            type_multiplier = 1
+        elif dtype == np.float32:
+            type_multiplier = 4
+
+        arr = np.fromfile(f, count=nvecs * dim, dtype=dtype, offset=start_idx * dim * type_multiplier)
+    return arr.reshape(-1, dim)
+
+
 def read_ibin(filename, start_idx=0, chunk_size=None):
     """ Read *.ibin file that contains int32 vectors
     Args:
