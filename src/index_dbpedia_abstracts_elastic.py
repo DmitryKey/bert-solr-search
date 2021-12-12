@@ -1,5 +1,5 @@
 import bz2
-from bert_serving.client import BertClient
+#from bert_serving.client import BertClient
 from client.elastic_client import ElasticClient
 import time
 from data_utils import parse_dbpedia_data, SearchEngine, EmbeddingModel, enrich_doc_with_vectors, \
@@ -8,9 +8,9 @@ from data_utils import parse_dbpedia_data, SearchEngine, EmbeddingModel, enrich_
 USE_PRECOMPUTED_VECTORS = True
 bc = None
 
-if not USE_PRECOMPUTED_VECTORS:
-    print("Initializing BERT client")
-    bc = BertClient()
+#if not USE_PRECOMPUTED_VECTORS:
+#    print("Initializing BERT client")
+#    bc = BertClient()
 
 print("Initializing Elastic client")
 ec = ElasticClient(configs_dir='es_conf')
@@ -37,8 +37,8 @@ if __name__ == '__main__':
         print("Using precomputed vectors")
         docs_iter = parse_gsi_and_dbpedia_data(
             source_file,
-            'data/gsi_apu/1000000_EmbeddingModel.HUGGING_FACE_SENTENCE_vectors.npy',
-            'data/gsi_apu/1000000_EmbeddingModel.HUGGING_FACE_SENTENCE_vectors_docids.pkl',
+            '/home/ubuntu/data/1000000_EmbeddingModel.HUGGING_FACE_SENTENCE_vectors.npy',
+            '/home/ubuntu/data/1000000_EmbeddingModel.HUGGING_FACE_SENTENCE_vectors_docids.pkl',
             MAX_DOCS
         )
     else:

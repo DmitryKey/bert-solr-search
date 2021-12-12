@@ -1,7 +1,7 @@
 import bz2
-from bert_serving.client import BertClient
+#from bert_serving.client import BertClient
 import time
-from data_utils import SearchEngine, vectors_to_gis_files, EmbeddingModel
+from data_utils import SearchEngine, vectors_to_gsi_files, EmbeddingModel
 
 # Read the input compressed file as is, without decompressing.
 # Though disks are cheap, isn't it great to save them?
@@ -15,9 +15,9 @@ MAX_DOCS = 1000000
 
 model = EmbeddingModel.HUGGING_FACE_SENTENCE
 bc = None
-if model == EmbeddingModel.BERT_UNCASED_768:
-    print("Initializing BERT client")
-    bc = BertClient()
+#if model == EmbeddingModel.BERT_UNCASED_768:
+#    print("Initializing BERT client")
+#    bc = BertClient()
 
 output_numpy_file = "data/gsi_apu/" + str(MAX_DOCS) + "_" + str(model) + "_vectors.npy"
 output_pickle_file = "data/gsi_apu/" + str(MAX_DOCS) + "_" + str(model) + "_vectors_docids.pkl"
@@ -25,9 +25,8 @@ output_pickle_file = "data/gsi_apu/" + str(MAX_DOCS) + "_" + str(model) + "_vect
 if __name__ == '__main__':
     print("parsing abstracts and computing " + str(model) + " embeddings...")
     start_time = time.time()
-    vectors_to_gis_files(
+    vectors_to_gsi_files(
         source_file,
-        bc,
         model,
         SearchEngine.ELASTICSEARCH,
         MAX_DOCS,

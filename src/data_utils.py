@@ -4,7 +4,7 @@ import nltk
 from enum import Enum
 
 import numpy as np
-from bert_serving.client import BertClient
+#from bert_serving.client import BertClient
 from sentence_transformers import SentenceTransformer
 
 from client.utils import to_solr_vector
@@ -13,7 +13,7 @@ from sklearn.preprocessing import normalize
 VERBOSE = True
 
 # Init once
-sbert_model = SentenceTransformer('models/bert-base-nli-mean-tokens')
+sbert_model = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1')
 
 
 class SearchEngine(Enum):
@@ -49,7 +49,7 @@ def compute_sbert_vectors(text):
     return sbert_model.encode([text])
 
 
-def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, bc: BertClient, search_engine: SearchEngine):
+def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, search_engine: SearchEngine):
     """
     Given a dictionary document doc, compute vector embeddings for its _text_ attribute and enrich the doc with
     the computed vector
@@ -191,7 +191,6 @@ def parse_gsi_and_dbpedia_data(source_file, numpy_data_file, pickle_indexes_file
 
 
 def vectors_to_gsi_files(source_file,
-                         bc: BertClient,
                          embedding_model: EmbeddingModel,
                          search_engine: SearchEngine,
                          max_docs: int,
@@ -212,7 +211,7 @@ def vectors_to_gsi_files(source_file,
     big_vector_arr = []
     big_docid_arr = []
 
-    docs_iter = enrich_doc_with_vectors(docs_iter, embedding_model, bc, search_engine)
+    docs_iter = enrich_doc_with_vectors(docs_iter, embedding_model, search_engine)
 
     for doc in docs_iter:
         # flattened numpy array
