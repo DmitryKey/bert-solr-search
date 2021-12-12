@@ -29,7 +29,7 @@ Tech stack:
 - streamlit
 - Python 3.7
 
-Code for dealing with Solr has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
+Code for dealing with Solr and Elasticsearch has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
 
 # Install tensorflow
 
