@@ -176,8 +176,7 @@ index = st.sidebar.selectbox('Target index',
                       'long_abstracts'))
 ranker = st.sidebar.radio('Rank by', ["BERT", "SBERT", "BM25"], index=0)
 measure = st.sidebar.radio('Ranker distance metric (applies only to BERT/SBERT and es-vanilla)', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
-diversification_method = "random"
-
+diversification_method = st.sidebar.radio('Diversification', ["None", "random", "dpp", "kmeans"], index=0)
 
 local_css("css/style.css")
 remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
@@ -230,7 +229,7 @@ if button_clicked and query != "":
     st.write("Query time: {} ms".format(query_time))
     st.write("Found documents: {}".format(numfound))
     if numfound > 0:
-        df = pd.DataFrame(docs)
+        df = pd.DataFrame(docs, columns=["id", "_text_", "url", "_score", "old_index"])
         st.table(df)
         # Try plotly table for different UX, than standard streamlit table rendering
         # plotly_table(df)
