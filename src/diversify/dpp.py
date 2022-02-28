@@ -13,7 +13,7 @@ def dpp(kernel_matrix, max_length, epsilon=1E-10):
     item_size = kernel_matrix.shape[0]
     cis = np.zeros((max_length, item_size))
     di2s = np.copy(np.diag(kernel_matrix))
-    # print(di2s)
+
     selected_items = list()
     selected_item = np.argmax(di2s)
     selected_items.append(selected_item)
@@ -21,7 +21,7 @@ def dpp(kernel_matrix, max_length, epsilon=1E-10):
         k = len(selected_items) - 1
         ci_optimal = cis[:k, selected_item]
         di_optimal = math.sqrt(di2s[selected_item])
-        # print(f"item {selected_item}")
+
         elements = kernel_matrix[selected_item, :]
         eis = (elements - np.dot(ci_optimal, cis[:k, :])) / di_optimal
         cis[k, :] = eis

@@ -6,10 +6,13 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 from scipy.spatial.distance import cdist
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, MultiLabelBinarizer
+from sklearn.preprocessing import MultiLabelBinarizer
 
 from diversify.dpp import dpp
 from diversify.kmeans_indices import kmeans_cluster
+
+# Static random seed to ensure predictable randomization results
+RANDOM_SEED = 57895447
 
 
 def build_similarity_matrix(data, method="vec"):
@@ -62,6 +65,8 @@ class BaseDiversify(ABC):
 
     @abstractmethod
     def diversify(self, data):
+        """Diversify the given input
+        """
         pass
 
     @staticmethod
@@ -87,19 +92,12 @@ class DppDiversify(BaseDiversify):
 
         size = len(data)
 
-        if False:
-            similarity_matrix = build_similarity_matrix(
-                data["genres"],
-                method="categorical")
-        else:
-            similarity_matrix = build_similarity_matrix(data["vector"].to_list())
+        similarity_matrix = build_similarity_matrix(data["vector"].to_list())
 
         scores = data["_score"].to_numpy()
-
         kernel_matrix = scores.reshape((size, 1)) * similarity_matrix * scores.reshape((1, size))
 
         res = dpp(kernel_matrix, size)
-
         data = data.reindex(res)
 
         return data
