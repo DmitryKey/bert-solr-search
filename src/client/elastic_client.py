@@ -224,8 +224,8 @@ class ElasticClient(BaseClient):
         resp = self.es.search(index=index, body=query)
         self.resp_msg(msg="Searching {} - {}".format(index, str(query)[:20]), resp=SearchResp(resp))
 
-        #print("================ ES response")
-        print(resp)
+        # print("================ ES response")
+        # print(resp)
 
         # Transform to consistent format between ES/Solr
         matches = []
