@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from data_utils import compute_sbert_vectors, compute_bert_vectors
+from diversify.diversify import diversify
 
 bc = BertClient()
 # default ES: connection to localhost
@@ -35,10 +36,13 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
     elif ranker == "SBERT":
         query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
 
+    _source = ["id", "_text_", "url"]
+    if diversification_method:
+        _source = ["id", "_text_", "url", "vector"]
     if search_method == 'es-vanilla':
         es_query = {
             "size": docs_count,
-            "_source": ["id", "_text_", "url"],
+            "_source": _source,
             "query": {
                 "script_score": {
                     "query": {"match_all": {}},
@@ -52,7 +56,7 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
     elif search_method == 'es-elastiknn':
         es_query = {
             "size": docs_count,
-            "_source": ["id", "_text_", "url"],
+            "_source": _source,
             "query": {
                 "elastiknn_nearest_neighbors": {
                     "field": "vector",
@@ -67,7 +71,7 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
         }
     elif search_method == 'es-opendistro':
         es_query = {
-            "_source": ["id", "_text_", "url"],
+            "_source": _source,
             "size": docs_count,
             "query": {
                 "knn": {
@@ -80,7 +84,7 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
         }
     elif search_method == 'es-gsi':
         es_query = {
-            "_source": ["id", "_text_", "url"],
+            "_source": _source,
             "size": docs_count,
             "query": {
                 "gsi_similarity": {
@@ -172,6 +176,7 @@ index = st.sidebar.selectbox('Target index',
                       'long_abstracts'))
 ranker = st.sidebar.radio('Rank by', ["BERT", "SBERT", "BM25"], index=0)
 measure = st.sidebar.radio('Ranker distance metric (applies only to BERT/SBERT and es-vanilla)', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
+diversification_method = st.sidebar.radio('Diversification', ["None", "random", "dpp", "kmeans"], index=0)
 
 local_css("css/style.css")
 remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
@@ -215,12 +220,16 @@ if button_clicked and query != "":
             docs, query_time, numfound = es_gsi.query(index, es_query)
         else:
             docs, query_time, numfound = ec.query(index, es_query)
+
+        if diversification_method:
+            docs = diversify(docs, diversification_method)
+
     st.success("Done!")
 
     st.write("Query time: {} ms".format(query_time))
     st.write("Found documents: {}".format(numfound))
     if numfound > 0:
-        df = pd.DataFrame(docs)
+        df = pd.DataFrame(docs, columns=["id", "_text_", "url", "_score", "old_index"])
         st.table(df)
         # Try plotly table for different UX, than standard streamlit table rendering
         # plotly_table(df)
