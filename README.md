@@ -17,6 +17,8 @@ This code is described in the following Medium stories, taking one step at a tim
 
 [Ask Me Anything about Vector Search](https://dmitry-kan.medium.com/ask-me-anything-about-vector-search-4252a01f3889) (June 20, 2021) This blog post gives the answers to the 3 most interesting questions asked during the AMA session at Berlin Buzzwords 2021. The video recording is available here: https://www.youtube.com/watch?v=blFe2yOD1WA
 
+[5 ways to increase result diversity at web-scale (Video)](https://dmitry-kan.medium.com/5-ways-to-increase-result-diversity-at-web-scale-4b4f79a898a6)
+
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
 
