@@ -1,14 +1,12 @@
 import streamlit as st
-from bert_serving.client import BertClient
 from client.elastic_client import ElasticClient
 from client.utils import get_elasticsearch_vector
 import pandas as pd
 import plotly.graph_objects as go
 
-from data_utils import compute_sbert_vectors, compute_bert_vectors
+from data_utils import compute_sbert_vectors
 from diversify.diversify import diversify
 
-bc = BertClient()
 # default ES: connection to localhost
 ec = ElasticClient()
 
@@ -18,7 +16,7 @@ es_gsi = ElasticClient(host='10.10.6.6')
 # Query config:
 # 1. es-vanilla is default dense vector based search, no KNN / ANN involved
 # 2. es-elastiknn is elastiknn based KNN search with configurable similarity
-def get_query_config(search_method, ranker, distance_metric, query, bc: BertClient, docs_count):
+def get_query_config(search_method, ranker, distance_metric, query, docs_count):
     """
     Compute query config for the given method, ranker function and query
     :param ranker: BERT or SBERT
@@ -31,9 +29,7 @@ def get_query_config(search_method, ranker, distance_metric, query, bc: BertClie
     es_query = None
 
     query_vector = None
-    if ranker == "BERT":
-        query_vector = get_elasticsearch_vector(compute_bert_vectors(query, bc))
-    elif ranker == "SBERT":
+    if ranker == "SBERT":
         query_vector = get_elasticsearch_vector(compute_sbert_vectors(query))
 
     _source = ["id", "_text_", "url"]
@@ -174,7 +170,7 @@ index = st.sidebar.selectbox('Target index',
                       'elastiknn_1000', 'elastiknn_10000', 'elastiknn_100000', 'elastiknn_1000000',
                       'opendistro_100', 'opendistro_200', 'opendistro_1000', 'opendistro_10000', 'opendistro_20000', 'opendistro_100000', 'opendistro_200000', 'opendistro_1000000',
                       'long_abstracts'))
-ranker = st.sidebar.radio('Rank by', ["BERT", "SBERT", "BM25"], index=0)
+ranker = st.sidebar.radio('Rank by', ["SBERT", "BM25"], index=0)
 measure = st.sidebar.radio('Ranker distance metric (applies only to BERT/SBERT and es-vanilla)', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
 diversification_method = st.sidebar.radio('Diversification', ["None", "random", "dpp", "kmeans"], index=0)
 
@@ -191,7 +187,7 @@ if button_clicked and query != "":
     st.write("Ranker: {}".format(ranker))
     st.write("Index: {}".format(index))
     es_query = None
-    if ranker == "BERT" or ranker == "SBERT":
+    if ranker == "SBERT":
         cosine = "false"
         distance_metric = ''
         if measure == "cosine ([0,1])":
@@ -207,7 +203,6 @@ if button_clicked and query != "":
                                     ranker=ranker,
                                     distance_metric=distance_metric,
                                     query=query,
-                                    bc=bc,
                                     docs_count=n_docs)
     elif ranker == "BM25":
         es_query = {

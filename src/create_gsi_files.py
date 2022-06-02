@@ -1,5 +1,4 @@
 import bz2
-#from bert_serving.client import BertClient
 import time
 from data_utils import SearchEngine, vectors_to_gsi_files, EmbeddingModel
 
@@ -14,10 +13,6 @@ source_file = bz2.BZ2File(input_file, "r")
 MAX_DOCS = 1000000
 
 model = EmbeddingModel.HUGGING_FACE_SENTENCE
-bc = None
-#if model == EmbeddingModel.BERT_UNCASED_768:
-#    print("Initializing BERT client")
-#    bc = BertClient()
 
 output_numpy_file = "data/gsi_apu/" + str(MAX_DOCS) + "_" + str(model) + "_vectors.npy"
 output_pickle_file = "data/gsi_apu/" + str(MAX_DOCS) + "_" + str(model) + "_vectors_docids.pkl"

@@ -46,7 +46,7 @@ if __name__ == '__main__':
     else:
         print("Computing vectors from scratch")
         docs_iter = parse_dbpedia_data(source_file, MAX_DOCS)
-        docs_iter = enrich_doc_with_vectors(docs_iter, EmbeddingModel.BERT_UNCASED_768, bc, SearchEngine.SOLR)
+        docs_iter = enrich_doc_with_vectors(docs_iter, EmbeddingModel.HUGGING_FACE_SENTENCE, SearchEngine.SOLR)
 
     sc.index_documents(index_name, docs_iter)
     end_time = time.time()

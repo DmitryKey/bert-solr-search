@@ -1,10 +1,7 @@
 import pickle
 import re
-import nltk
 from enum import Enum
-
 import numpy as np
-#from bert_serving.client import BertClient
 from sentence_transformers import SentenceTransformer
 
 from client.utils import to_solr_vector
@@ -22,20 +19,7 @@ class SearchEngine(Enum):
 
 
 class EmbeddingModel(Enum):
-    BERT_UNCASED_768 = 1,
-    HUGGING_FACE_SENTENCE = 2
-
-
-def compute_bert_vectors(text, bc):
-    """
-    Compute BERT embeddings for the input string
-    :param text: single string with input text to compute BERT embedding for
-    :param bc: BERT service object
-    :return: encoded sentence/token-level embeddings, rows correspond to sentences
-    :rtype: numpy.ndarray or list[list[float]]
-    """
-    print("compute_bert_vectors() was called")
-    return bc.encode([text])
+    HUGGING_FACE_SENTENCE = 1
 
 
 def compute_sbert_vectors(text):
@@ -64,11 +48,7 @@ def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, search_e
         vector = None
 
         # compute the vector depending on the model
-        if embedding_model == EmbeddingModel.BERT_UNCASED_768:
-            # compute vectors for a concatenated string of sentences
-            text = ' ||| '.join(nltk.sent_tokenize(doc["_text_"], "english"))
-            vector = compute_bert_vectors(text, bc)
-        elif embedding_model == EmbeddingModel.HUGGING_FACE_SENTENCE:
+        if embedding_model == EmbeddingModel.HUGGING_FACE_SENTENCE:
             vector = compute_sbert_vectors(doc["_text_"])
 
         if search_engine == SearchEngine.SOLR:

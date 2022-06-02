@@ -24,49 +24,19 @@ This code is described in the following Medium stories, taking one step at a tim
 
 ---
 
-Tech stack: 
-- bert-as-service
+Tech stack:
 - Hugging Face
-- solr / elasticsearch
+- Solr / Elasticsearch / OpenSearch
 - streamlit
-- Python 3.7
+- Python 3.8 (upgraded recently)
 
 Code for dealing with Solr and Elasticsearch has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
+OpenSearch client is implemented on top of this code and https://github.com/DmitryKey/search_with_machine_learning_course/blob/main/week1/opensearch.py
 
-# Install tensorflow
-
-`pip install tensorflow==1.15.3`
-
-If you try to install tensorflow 2.3, bert service will fail to start, there is an existing issue about it.
-
+# How to install
 If you encounter issues with the above installation, consider installing full list of packages:
 
 `pip install -r requirements_freeze.txt`
-
-# Let's install bert-as-service components
-
-`pip install bert-serving-server`
-
-`pip install bert-serving-client`    
-
-# Download a pre-trained BERT model 
-into the `bert-model/` directory in this project. I have chosen [uncased_L-12_H-768_A-12.zip](https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip)
-for this experiment. Unzip it.
-
-# Now let's start the BERT service
-
-`bash start_bert_server.sh`
-
-# Run a sample bert client
-    python src/bert_client.py
- to compute vectors for 3 sample sentences:
-
-        Bert vectors for sentences ['First do it', 'then do it right', 'then do it better'] : [[ 0.13186474  0.32404128 -0.82704437 ... -0.3711958  -0.39250174
-          -0.31721866]
-         [ 0.24873531 -0.12334424 -0.38933852 ... -0.44756213 -0.5591355
-          -0.11345179]
-         [ 0.28627345 -0.18580122 -0.30906814 ... -0.2959366  -0.39310536
-           0.07640187]]
 
 This sets up the stage for our further experiment with Solr.
 
@@ -135,10 +105,9 @@ After these data files get uploaded to the GSI server, the same data gets indexe
 Since I’ve run into indexing performance with bert-as-service solution, 
 I decided to take SBERT approach from Hugging Face to prepare the numpy and pickle array files. 
 This allowed me to index into Elasticsearch freely at any time, without waiting for days.
-You can use this script to do this on DBPedia data, which allows choosing between:
+You can use this script to do this on DBPedia data, which allows using:
 
     EmbeddingModel.HUGGING_FACE_SENTENCE (SBERT)
-    EmbeddingModel.BERT_UNCASED_768 (bert-as-service)
 
 To generate the numpy and pickle files, use the following script: `scr/create_gsi_files.py`.
 This script produces two files:
@@ -154,8 +123,7 @@ Running the BERT search demo
 ===
 There are two streamlit demos for running BERT search
 for Solr and Elasticsearch. Each demo compares to BM25 based search.
-The following assumes that you have bert-as-service up and running (if not, laucnh it with `bash start_bert_server.sh`)
-and either Elasticsearch or Solr running with the index containing field with embeddings.
+The following scripts assume either Elasticsearch or Solr running with the index containing field with embeddings.
 
 To run a demo, execute the following on the command line from the project root:
 
