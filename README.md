@@ -19,6 +19,13 @@ This code is described in the following Medium stories, taking one step at a tim
 
 [5 ways to increase result diversity at web-scale (Video)](https://dmitry-kan.medium.com/5-ways-to-increase-result-diversity-at-web-scale-4b4f79a898a6) Implementation of result diversity algorithms on top of neural search using code in this repository. [Streamlit demo](https://github.com/DmitryKey/bert-solr-search/blob/master/src/search_demo_elasticsearch.py)
 
+Also, if you are interested in Vector Databases and Neural Search Frameworks, these two blog posts provide more information:
+
+[Not All Vector Databases Are Made Equal
+](https://towardsdatascience.com/milvus-pinecone-vespa-weaviate-vald-gsi-what-unites-these-buzz-words-and-what-makes-each-9c65a3bd0696) A detailed comparison of Milvus, Pinecone, Vespa, Weaviate, Vald, GSI and Qdrant
+
+[Neural Search Frameworks: A Head-to-Head Comparison](https://dmitry-kan.medium.com/neural-search-frameworks-a-head-to-head-comparison-976aa6662d20) This blog post introduces my Vector Search Pyramid concept, through which I explain vector search space layer by layer. This blog post focuses on neural search framework layer.
+
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
 
