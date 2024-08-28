@@ -1,12 +1,11 @@
 import streamlit as st
-from bert_serving.client import BertClient
 from client.solr_client import SolrClient
 from util.utils import get_solr_vector_search
 import pandas as pd
 import plotly.graph_objects as go
 
-st.write("Connecting the BertClient...")
-bc = BertClient()
+from data_utils import compute_sbert_vectors
+
 st.write("Connecting the SolrClient...")
 sc = SolrClient()
 
@@ -82,7 +81,7 @@ References:
 
 
 st.title('BERT & Solr Search Demo')
-ranker = st.sidebar.radio('Rank by', ["BERT", "BM25"], index=0)
+ranker = st.sidebar.radio('Rank by', ["SBERT", "BM25"], index=0)
 measure = st.sidebar.radio('BERT ranker formula', ["cosine ([0,1])", "dot product (unbounded)"], index=0)
 
 local_css("css/style.css")
@@ -97,14 +96,14 @@ n = st.sidebar.slider(label="Number of Documents to View", min_value=10, max_val
 if button_clicked or query != "":
     st.write("Query: {}".format(query))
     st.write("Ranker: {}".format(ranker))
-    if ranker == "BERT":
+    if ranker == "SBERT":
         cosine = "false"
         if measure == "cosine ([0,1])":
             cosine = "true"
         elif measure == "dot product (unbounded)":
             cosine = "false"
         query = {
-            "q": '{!vp f=vector vector="' + get_solr_vector_search(bc, query) + '" cosine=' + cosine + '}',
+            "q": '{!vp f=vector vector="' + get_solr_vector_search(compute_sbert_vectors(query)) + '" cosine=' + cosine + '}',
             "wt": "json",
             "fl": "id,_text_,url,score",
             "rows": n

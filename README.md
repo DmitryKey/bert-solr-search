@@ -1,5 +1,11 @@
-Bert with Solr and Elasticsearch
+
+BERT models with Solr and Elasticsearch
 ===
+
+https://user-images.githubusercontent.com/123553/118112866-3f44e480-b3ee-11eb-92ca-0250bc65bd37.mp4
+
+https://user-images.githubusercontent.com/123553/118320272-a94fad80-b504-11eb-96cf-1810813e2284.mp4
+
 
 This code is described in the following Medium stories, taking one step at a time: 
 
@@ -9,26 +15,33 @@ This code is described in the following Medium stories, taking one step at a tim
 
 [Speeding up BERT Search in Elasticsearch](https://dmitry-kan.medium.com/speeding-up-bert-search-in-elasticsearch-750f1f34f455) (March 15, 2021)
 
+[Ask Me Anything about Vector Search](https://dmitry-kan.medium.com/ask-me-anything-about-vector-search-4252a01f3889) (June 20, 2021) This blog post gives the answers to the 3 most interesting questions asked during the AMA session at Berlin Buzzwords 2021. The video recording is available here: https://www.youtube.com/watch?v=blFe2yOD1WA
+
+[5 ways to increase result diversity at web-scale (Video)](https://dmitry-kan.medium.com/5-ways-to-increase-result-diversity-at-web-scale-4b4f79a898a6) Implementation of result diversity algorithms on top of neural search using code in this repository. [Streamlit demo](https://github.com/DmitryKey/bert-solr-search/blob/master/src/search_demo_elasticsearch.py)
+
+Also, if you are interested in Vector Databases and Neural Search Frameworks, these two blog posts provide more information:
+
+[Not All Vector Databases Are Made Equal
+](https://towardsdatascience.com/milvus-pinecone-vespa-weaviate-vald-gsi-what-unites-these-buzz-words-and-what-makes-each-9c65a3bd0696) A detailed comparison of Milvus, Pinecone, Vespa, Weaviate, Vald, GSI and Qdrant
+
+[Neural Search Frameworks: A Head-to-Head Comparison](https://dmitry-kan.medium.com/neural-search-frameworks-a-head-to-head-comparison-976aa6662d20) This blog post introduces my Vector Search Pyramid concept, through which I explain vector search space layer by layer. This blog post focuses on neural search framework layer.
+
 ![Bert in Solr hat](img/bert_solr.png)
 ![Bert with_es burger](img/bert_es.png)
 
 ---
 
-Tech stack: 
-- bert-as-service
+Tech stack:
 - Hugging Face
 - Solr / Elasticsearch / ODFE (OpenSearch)
+- Solr / Elasticsearch / OpenSearch
 - streamlit
-- Python 3.8
+- Python 3.8 (upgraded recently)
 
-Code for dealing with Solr has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
+Code for dealing with Solr and Elasticsearch has been copied from the great (and highly recommended) https://github.com/o19s/hello-ltr project.
+OpenSearch client is implemented on top of this code and https://github.com/DmitryKey/search_with_machine_learning_course/blob/main/week1/opensearch.py
 
-# Install tensorflow
-
-`pip install tensorflow==1.15.3`
-
-If you try to install tensorflow 2.3, bert service will fail to start, there is an existing issue about it.
-
+# How to install
 If you encounter issues with the above installation, consider installing full list of packages:
 
 `pip install -r requirements_freeze.txt`

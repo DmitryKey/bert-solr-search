@@ -1,10 +1,7 @@
 import pickle
 import re
-import nltk
 from enum import Enum
-
 import numpy as np
-from bert_serving.client import BertClient
 from sentence_transformers import SentenceTransformer
 
 from util.utils import to_solr_vector
@@ -13,7 +10,7 @@ from sklearn.preprocessing import normalize
 VERBOSE = True
 
 # Init once
-sbert_model = SentenceTransformer('models/bert-base-nli-mean-tokens')
+sbert_model = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1')
 
 
 class SearchEngine(Enum):
@@ -22,20 +19,7 @@ class SearchEngine(Enum):
 
 
 class EmbeddingModel(Enum):
-    BERT_UNCASED_768 = 1,
-    HUGGING_FACE_SENTENCE = 2
-
-
-def compute_bert_vectors(text, bc):
-    """
-    Compute BERT embeddings for the input string
-    :param text: single string with input text to compute BERT embedding for
-    :param bc: BERT service object
-    :return: encoded sentence/token-level embeddings, rows correspond to sentences
-    :rtype: numpy.ndarray or list[list[float]]
-    """
-    print("compute_bert_vectors() was called")
-    return bc.encode([text])
+    HUGGING_FACE_SENTENCE = 1
 
 
 def compute_sbert_vectors(text):
@@ -49,7 +33,7 @@ def compute_sbert_vectors(text):
     return sbert_model.encode([text])
 
 
-def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, bc: BertClient, search_engine: SearchEngine):
+def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, search_engine: SearchEngine):
     """
     Given a dictionary document doc, compute vector embeddings for its _text_ attribute and enrich the doc with
     the computed vector
@@ -64,11 +48,7 @@ def enrich_doc_with_vectors(docs_iter, embedding_model: EmbeddingModel, bc: Bert
         vector = None
 
         # compute the vector depending on the model
-        if embedding_model == EmbeddingModel.BERT_UNCASED_768:
-            # compute vectors for a concatenated string of sentences
-            text = ' ||| '.join(nltk.sent_tokenize(doc["_text_"], "english"))
-            vector = compute_bert_vectors(text, bc)
-        elif embedding_model == EmbeddingModel.HUGGING_FACE_SENTENCE:
+        if embedding_model == EmbeddingModel.HUGGING_FACE_SENTENCE:
             vector = compute_sbert_vectors(doc["_text_"])
 
         if search_engine == SearchEngine.SOLR:
@@ -191,7 +171,6 @@ def parse_gsi_and_dbpedia_data(source_file, numpy_data_file, pickle_indexes_file
 
 
 def vectors_to_gsi_files(source_file,
-                         bc: BertClient,
                          embedding_model: EmbeddingModel,
                          search_engine: SearchEngine,
                          max_docs: int,
@@ -212,7 +191,7 @@ def vectors_to_gsi_files(source_file,
     big_vector_arr = []
     big_docid_arr = []
 
-    docs_iter = enrich_doc_with_vectors(docs_iter, embedding_model, bc, search_engine)
+    docs_iter = enrich_doc_with_vectors(docs_iter, embedding_model, search_engine)
 
     for doc in docs_iter:
         # flattened numpy array

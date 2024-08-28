@@ -1,9 +1,9 @@
 streamlit~=0.65.2
 pandas~=1.1.0
-tensorflow==1.15.3
+#tensorflow==1.15.3
 flask
-bert-serving-server
-bert-serving-client
+#bert-serving-server
+#bert-serving-client
 flask_compress
 flask_cors
 flask_json
