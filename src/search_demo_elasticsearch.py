@@ -1,6 +1,6 @@
 import streamlit as st
 from client.elastic_client import ElasticClient
-from client.utils import get_elasticsearch_vector
+from util.utils import get_elasticsearch_vector
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -192,9 +192,11 @@ if button_clicked and query != "":
         distance_metric = ''
         if measure == "cosine ([0,1])":
             cosine = "true"
+            st.write("Using cosine distance")
             distance_metric = "1.0 + cosineSimilarity(params['query_vector'], 'vector')"
         elif measure == "dot product (unbounded)":
             cosine = "false"
+            st.write("Using dot product distance")
             # Using the standard sigmoid function prevents scores from being negative
             distance_metric = """double value = dotProduct(params.query_vector, 'vector');
           return sigmoid(1, Math.E, -value);"""

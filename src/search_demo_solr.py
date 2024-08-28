@@ -1,6 +1,6 @@
 import streamlit as st
 from client.solr_client import SolrClient
-from client.utils import get_solr_vector_search
+from util.utils import get_solr_vector_search
 import pandas as pd
 import plotly.graph_objects as go
 
